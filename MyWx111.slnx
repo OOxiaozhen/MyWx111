@@ -1,0 +1,7 @@
+<Solution>
+  <Configurations>
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Project Path="MyWx111/MyWx111.vcxproj" Id="acfe32c6-c82e-4eac-b5aa-29350548d5dc" />
+</Solution>

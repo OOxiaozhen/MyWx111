@@ -1,0 +1,201 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\app\App.cpp" />
+    <ClCompile Include="src\app\MainFrame.cpp" />
+    <ClCompile Include="src\io\GedaFootprints.cpp" />
+    <ClCompile Include="src\io\GedaNetlistExporter.cpp" />
+    <ClCompile Include="src\io\NetlistExporter.cpp" />
+    <ClCompile Include="src\io\PcbFileExporter.cpp" />
+    <ClCompile Include="src\io\ProjectSerializer.cpp" />
+    <ClCompile Include="src\model\Component.cpp" />
+    <ClCompile Include="src\model\Circuit.cpp" />
+    <ClCompile Include="src\model\GateComponents.cpp" />
+    <ClCompile Include="src\model\UndoStack.cpp" />
+    <ClCompile Include="src\sim\Simulator.cpp" />
+    <ClCompile Include="src\ui\IconFactory.cpp" />
+    <ClCompile Include="src\ui\PropertiesPanel.cpp" />
+    <ClCompile Include="src\ui\ToolPalette.cpp" />
+    <ClCompile Include="src\view\CircuitCanvas.cpp" />
+    <ClCompile Include="src\view\ComponentRenderer.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\app\App.h" />
+    <ClInclude Include="src\app\MainFrame.h" />
+    <ClInclude Include="src\io\GedaFootprints.h" />
+    <ClInclude Include="src\io\GedaNetlistExporter.h" />
+    <ClInclude Include="src\io\NetlistExporter.h" />
+    <ClInclude Include="src\io\PcbFileExporter.h" />
+    <ClInclude Include="src\io\ProjectSerializer.h" />
+    <ClInclude Include="src\model\Pin.h" />
+    <ClInclude Include="src\model\ComponentType.h" />
+    <ClInclude Include="src\model\LogicLevel.h" />
+    <ClInclude Include="src\model\Component.h" />
+    <ClInclude Include="src\model\GateComponents.h" />
+    <ClInclude Include="src\model\UndoStack.h" />
+    <ClInclude Include="src\model\Wire.h" />
+    <ClInclude Include="src\model\Circuit.h" />
+    <ClInclude Include="src\sim\Simulator.h" />
+    <ClInclude Include="src\ui\IconFactory.h" />
+    <ClInclude Include="src\ui\ToolMode.h" />
+    <ClInclude Include="src\ui\PropertiesPanel.h" />
+    <ClInclude Include="src\ui\ToolPalette.h" />
+    <ClInclude Include="src\view\GridTransform.h" />
+    <ClInclude Include="src\view\ComponentRenderer.h" />
+    <ClInclude Include="src\view\CircuitCanvas.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="assets\icons\README.md" />
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>18.0</VCProjectVersion>
+    <Keyword>Win32Proj</Keyword>
+    <ProjectGuid>{acfe32c6-c82e-4eac-b5aa-29350548d5dc}</ProjectGuid>
+    <RootNamespace>MyWx111</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v145</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v145</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v145</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v145</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+    <Manifest>
+      <EnableSegmentHeap>true</EnableSegmentHeap>
+    </Manifest>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+    <Manifest>
+      <EnableSegmentHeap>true</EnableSegmentHeap>
+    </Manifest>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <!-- /sdl 会把 wx 头文件里的告警升级为错误，导致首次编译无法收敛 -->
+      <SDLCheck>false</SDLCheck>
+      <!-- 子系统已是 Windows，保留 _CONSOLE 会让 CRT 去找 main，与 wxIMPLEMENT_APP 生成的 WinMain 冲突 -->
+      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <AdditionalIncludeDirectories>C:\wxWidgets-3.3.3\include;C:\wxWidgets-3.3.3\include\msvc;C:\wxWidgets;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <!-- 把 wx 头文件当外部头处理，压掉第三方告警噪音，同时保留本项目 Level3 告警 -->
+      <ExternalIncludePath>C:\wxWidgets-3.3.3\include;C:\wxWidgets-3.3.3\include\msvc;%(ExternalIncludePath)</ExternalIncludePath>
+      <!-- 源文件统一以 UTF-8 保存，必须显式声明 /utf-8；否则 MSVC 按本地代码页解析中文字面量，导致界面文字乱码与 C4819 -->
+      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>C:\wxWidgets-3.3.3\lib\vc_x64_lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <!-- wx 库在前、系统库在后：MSVC 单遍解析符号，依赖方必须先于被依赖方出现 -->
+      <AdditionalDependencies>wxbase33ud.lib;wxmsw33ud_core.lib;wxmsw33ud_adv.lib;wxmsw33ud_aui.lib;wxmsw33ud_html.lib;wxmsw33ud_ribbon.lib;wxpngd.lib;wxjpegd.lib;wxtiffd.lib;wxzlibd.lib;wxregexud.lib;wxexpatd.lib;kernel32.lib;user32.lib;gdi32.lib;comdlg32.lib;winspool.lib;winmm.lib;shell32.lib;shlwapi.lib;comctl32.lib;ole32.lib;oleaut32.lib;uuid.lib;rpcrt4.lib;advapi32.lib;wsock32.lib;ws2_32.lib;version.lib;oleacc.lib;uxtheme.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+    <Manifest>
+      <EnableSegmentHeap>true</EnableSegmentHeap>
+    </Manifest>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+    <Manifest>
+      <EnableSegmentHeap>true</EnableSegmentHeap>
+    </Manifest>
+  </ItemDefinitionGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
