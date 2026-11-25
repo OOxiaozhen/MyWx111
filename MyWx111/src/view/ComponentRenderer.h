@@ -84,6 +84,17 @@ public:
                               const wxPoint& worldPos, const GridTransform& transform) const;
 
 private:
+    /// 在元件符号上绘制「电平徽标」：白底圆圈 + 圈内 1/0/? 文字。
+    /// 输入引脚与电平源用它表示可点击切换的自身电平，
+    /// 输出引脚用同一套样式只读显示上游网络电平，因此抽成公共辅助避免重复。
+    /// @param gc 图形上下文
+    /// @param comp 元件（提供位置与朝向）
+    /// @param localCenter 徽标圆心（元件的本地未变换坐标）
+    /// @param level 要显示的电平
+    /// @param transform 坐标变换（同时用于按缩放调整半径）
+    void DrawLevelBadge(wxGraphicsContext& gc, const Component& comp, const wxPoint& localCenter,
+                        LogicLevel level, const GridTransform& transform) const;
+
     /// 绘制符号主体多边形与附加折线。
     /// @param gc 图形上下文
     /// @param comp 元件（提供位置与朝向）

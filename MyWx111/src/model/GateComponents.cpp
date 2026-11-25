@@ -970,29 +970,23 @@ std::unique_ptr<Component> ComponentFactory::Create(ComponentType type, int id)
         return std::make_unique<NorGate>(id);
     case ComponentType::XorGate:
         return std::make_unique<XorGate>(id);
+    // 已废弃类型：已从元件库移除，不可创建。旧工程文件可能仍含这些元件，
+    // 返回 nullptr 让加载端走「类型无效，已跳过」分支，而不是在此处报错
     case ComponentType::Splitter:
-        return std::make_unique<Splitter>(id);
     case ComponentType::TextLabel:
-        return std::make_unique<TextLabel>(id);
-    // 已废弃类型：旧工程文件可能仍含这些元件，返回 nullptr 让加载端
-    // 走「类型无效，已跳过」分支，而不是在此处报错
     case ComponentType::VccSource:
     case ComponentType::GndSource:
+    case ComponentType::ClockSource:
+    case ComponentType::BufferGate:
+    case ComponentType::TriStateGate:
     case ComponentType::DFlipFlop:
     case ComponentType::RsLatch:
+    case ComponentType::LogicProbe:
         return nullptr;
-    case ComponentType::ClockSource:
-        return std::make_unique<ClockSource>(id);
     case ComponentType::XnorGate:
         return std::make_unique<XnorGate>(id);
-    case ComponentType::BufferGate:
-        return std::make_unique<BufferGate>(id);
-    case ComponentType::TriStateGate:
-        return std::make_unique<TriStateGate>(id);
     case ComponentType::LedIndicator:
         return std::make_unique<LedIndicator>(id);
-    case ComponentType::LogicProbe:
-        return std::make_unique<LogicProbe>(id);
     case ComponentType::LevelSource:
         return std::make_unique<LevelSource>(id);
     default:

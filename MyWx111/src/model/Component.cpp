@@ -181,9 +181,9 @@ wxString GetComponentDisplayName(ComponentType type)
     case ComponentType::XorGate:
         return wxString(L"异或门");
     case ComponentType::Splitter:
-        return wxString(L"分线器");
+        return wxString(L"(已废弃) 分线器");
     case ComponentType::TextLabel:
-        return wxString(L"文本标注");
+        return wxString(L"(已废弃) 文本标注");
     // 以下四个类型已废弃：分支保留只为满足穷举（旧文件加载时会被工厂拒绝），
     // 名称前加标记，万一出现在旧文件属性面板中也能看出是废弃类型
     case ComponentType::VccSource:
@@ -191,13 +191,13 @@ wxString GetComponentDisplayName(ComponentType type)
     case ComponentType::GndSource:
         return wxString(L"(已废弃) 低电平 GND");
     case ComponentType::ClockSource:
-        return wxString(L"时钟源");
+        return wxString(L"(已废弃) 时钟源");
     case ComponentType::XnorGate:
         return wxString(L"同或门");
     case ComponentType::BufferGate:
-        return wxString(L"缓冲器");
+        return wxString(L"(已废弃) 缓冲器");
     case ComponentType::TriStateGate:
-        return wxString(L"三态门");
+        return wxString(L"(已废弃) 三态门");
     case ComponentType::DFlipFlop:
         return wxString(L"(已废弃) D 触发器");
     case ComponentType::RsLatch:
@@ -205,7 +205,7 @@ wxString GetComponentDisplayName(ComponentType type)
     case ComponentType::LedIndicator:
         return wxString(L"LED 指示灯");
     case ComponentType::LogicProbe:
-        return wxString(L"逻辑探针");
+        return wxString(L"(已废弃) 逻辑探针");
     case ComponentType::LevelSource:
         return wxString(L"电平源");
     default:
@@ -266,7 +266,7 @@ wxString GetComponentGroupName(ComponentType type)
 std::vector<wxString> GetAllComponentGroups()
 {
     return { wxString(L"输入/输出"), wxString(L"逻辑门"), wxString(L"信号源"),
-             wxString(L"显示"), wxString(L"标注"), wxString(L"接线") };
+             wxString(L"显示") };
 }
 
 std::vector<ComponentType> GetComponentTypesInGroup(const wxString& groupName)
@@ -283,26 +283,16 @@ std::vector<ComponentType> GetComponentTypesInGroup(const wxString& groupName)
                  ComponentType::NandGate,
                  ComponentType::NorGate,
                  ComponentType::XorGate,
-                 ComponentType::XnorGate,
-                 ComponentType::BufferGate,
-                 ComponentType::TriStateGate };
+                 ComponentType::XnorGate };
     }
     if (groupName == wxString(L"信号源"))
     {
-        // 只有时钟源与统一电平源：VCC/GND 已合并进 LevelSource
-        return { ComponentType::ClockSource, ComponentType::LevelSource };
+        // 只剩统一电平源：时钟源已从元件库移除，VCC/GND 已合并进 LevelSource
+        return { ComponentType::LevelSource };
     }
     if (groupName == wxString(L"显示"))
     {
-        return { ComponentType::LedIndicator, ComponentType::LogicProbe };
-    }
-    if (groupName == wxString(L"标注"))
-    {
-        return { ComponentType::TextLabel };
-    }
-    if (groupName == wxString(L"接线"))
-    {
-        return { ComponentType::Splitter };
+        return { ComponentType::LedIndicator };
     }
     return {};
 }

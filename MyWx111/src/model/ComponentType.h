@@ -17,21 +17,21 @@ enum class ComponentType
     NandGate,  ///< 与非门
     NorGate,   ///< 或非门
     XorGate,   ///< 异或门
-    Splitter,  ///< 分线器
+    Splitter,  ///< 已废弃：已从元件库移除，不可创建；保留原值仅供旧文件兼容
 
     // ── 以下为仿真扩展新增。仅可继续在末尾追加：序列化按整数值存储，
     //    一旦插入中间位置，旧工程文件中的 type 会整体错位 ──
-    TextLabel,    ///< 文本标注（纯注释，无引脚，不参与仿真）
+    TextLabel,    ///< 已废弃：已从元件库移除（改用画布注释）；保留原值仅供旧文件兼容
     VccSource,    ///< 已废弃：由 LevelSource 取代；保留原值仅供旧文件兼容，不可创建
     GndSource,    ///< 已废弃：由 LevelSource 取代；保留原值仅供旧文件兼容，不可创建
-    ClockSource,  ///< 时钟信号源（本次不实现翻转行为）
+    ClockSource,  ///< 已废弃：已从元件库移除，不可创建
     XnorGate,     ///< 同或门
-    BufferGate,   ///< 缓冲器
-    TriStateGate, ///< 三态门
+    BufferGate,   ///< 已废弃：已从元件库移除，不可创建
+    TriStateGate, ///< 已废弃：已从元件库移除，不可创建
     DFlipFlop,    ///< 已废弃：时序分组已裁剪，不可创建
     RsLatch,      ///< 已废弃：时序分组已裁剪，不可创建
     LedIndicator, ///< LED 指示灯
-    LogicProbe,   ///< 逻辑探针
+    LogicProbe,   ///< 已废弃：已从元件库移除，不可创建
     LevelSource   ///< 统一电平源：高/低由属性面板切换，取代 VccSource/GndSource
 };
 

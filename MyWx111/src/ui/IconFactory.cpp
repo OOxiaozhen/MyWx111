@@ -700,29 +700,14 @@ wxBitmap IconFactory::RenderIcon(IconId id, int size, const wxColour& color, boo
         case IconId::Paste:
             DrawPasteIcon(*gc, color);
             break;
-        case IconId::TextLabel:
-            DrawTextLabelIcon(*gc, color);
-            break;
         case IconId::LevelSource:
             DrawLevelSourceIcon(*gc, color);
-            break;
-        case IconId::Clock:
-            DrawClockIcon(*gc, color);
             break;
         case IconId::Xnor:
             DrawXnorIcon(*gc, color);
             break;
-        case IconId::Buffer:
-            DrawBufferIcon(*gc, color);
-            break;
-        case IconId::TriState:
-            DrawTriStateIcon(*gc, color);
-            break;
         case IconId::Led:
             DrawLedIcon(*gc, color);
-            break;
-        case IconId::Probe:
-            DrawProbeIcon(*gc, color);
             break;
         case IconId::Note:
             DrawNoteIcon(*gc, color);

@@ -111,9 +111,8 @@ void ComponentRenderer::DrawComponent(wxGraphicsContext& gc, const Component& co
     DrawBody(gc, comp, transform, penColour, fillColour);
     DrawInversionBubble(gc, geo, comp, transform, fillColour);
 
-    // 带电平的元件（输入引脚 / 电平源）在符号上画一个「可点击圆圈」，
-    // 圈内显示 1/0：点圈内切电平，点圈外仍是正常选中。
-    // 它与仿真开关无关——开关只控制连线是否按电平着色。
+    // 带电平的元件（输入引脚 / 电平源）画「可点击圆圈」：点圈内切电平，
+    // 点圈外仍是正常选中。它与仿真开关无关——开关只控制连线是否按电平着色。
     if (comp.HasLevelToggle())
     {
         LogicLevel toggleLevel = LogicLevel::Unknown;
@@ -126,34 +125,15 @@ void ComponentRenderer::DrawComponent(wxGraphicsContext& gc, const Component& co
             toggleLevel = static_cast<const InputPin&>(comp).GetLevel();
         }
 
-        wxColour levelColour(120, 120, 120);
-        switch (toggleLevel)
-        {
-        case LogicLevel::High:
-            levelColour = wxColour(200, 60, 60);
-            break;
-        case LogicLevel::Low:
-            levelColour = wxColour(60, 110, 200);
-            break;
-        default:
-            break;
-        }
-
-        const wxPoint center = LocalToScreen(comp, comp.GetLevelToggleCenter(), transform);
-        // 半径随缩放变化，与符号本体保持同一比例
-        const double radius = (kComponentBodySize / 4) * transform.GetZoom();
-
-        // 白色底 + 电平色描边：无论本体填充深浅，圆圈与其中的数字都能看清
-        gc.SetPen(wxPen(levelColour, 2));
-        gc.SetBrush(wxBrush(wxColour(255, 255, 255)));
-        gc.DrawEllipse(center.x - radius, center.y - radius, radius * 2.0, radius * 2.0);
-
-        const wxString text(LogicLevelToDisplayChar(toggleLevel));
-        gc.SetFont(wxFont(wxFontInfo(10).Bold()), levelColour);
-        wxDouble textWidth = 0.0;
-        wxDouble textHeight = 0.0;
-        gc.GetTextExtent(text, &textWidth, &textHeight);
-        gc.DrawText(text, center.x - textWidth / 2.0, center.y - textHeight / 2.0);
+        DrawLevelBadge(gc, comp, comp.GetLevelToggleCenter(), toggleLevel, transform);
+    }
+    else if (comp.GetType() == ComponentType::OutputPin)
+    {
+        // 输出引脚是接收端，自身不存电平：用画布传入的网络电平作只读显示。
+        // 它没有重写 GetLevelToggleCenter，故圆心取本体中心；
+        // HasLevelToggle 保持 false，因此不会被 ToggleLevelByCircle 命中
+        DrawLevelBadge(gc, comp, wxPoint(kComponentBodySize / 2, kComponentBodySize / 2),
+                       inputLevel, transform);
     }
 
     // 引脚：连线状态由 Circuit 侧维护，渲染器拿不到，因此这里不作为高亮依据
@@ -207,6 +187,40 @@ void ComponentRenderer::DrawComponent(wxGraphicsContext& gc, const Component& co
                          bottomRight.x - topLeft.x + 6.0,
                          bottomRight.y - topLeft.y + 6.0);
     }
+}
+
+void ComponentRenderer::DrawLevelBadge(wxGraphicsContext& gc, const Component& comp,
+                                       const wxPoint& localCenter, LogicLevel level,
+                                       const GridTransform& transform) const
+{
+    wxColour levelColour(120, 120, 120);
+    switch (level)
+    {
+    case LogicLevel::High:
+        levelColour = wxColour(200, 60, 60);
+        break;
+    case LogicLevel::Low:
+        levelColour = wxColour(60, 110, 200);
+        break;
+    default:
+        break;
+    }
+
+    const wxPoint center = LocalToScreen(comp, localCenter, transform);
+    // 半径随缩放变化，与符号本体保持同一比例
+    const double radius = (kComponentBodySize / 4) * transform.GetZoom();
+
+    // 白色底 + 电平色描边：无论本体填充深浅，圆圈与其中的数字都能看清
+    gc.SetPen(wxPen(levelColour, 2));
+    gc.SetBrush(wxBrush(wxColour(255, 255, 255)));
+    gc.DrawEllipse(center.x - radius, center.y - radius, radius * 2.0, radius * 2.0);
+
+    const wxString text(LogicLevelToDisplayChar(level));
+    gc.SetFont(wxFont(wxFontInfo(10).Bold()), levelColour);
+    wxDouble textWidth = 0.0;
+    wxDouble textHeight = 0.0;
+    gc.GetTextExtent(text, &textWidth, &textHeight);
+    gc.DrawText(text, center.x - textWidth / 2.0, center.y - textHeight / 2.0);
 }
 
 void ComponentRenderer::DrawBody(wxGraphicsContext& gc, const Component& comp,
