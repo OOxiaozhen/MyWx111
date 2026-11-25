@@ -50,7 +50,9 @@ namespace
         { L"Package_DIP:DIP-14_W7.62mm", L"U", L"DFF", L"MyWx111" },
         { L"Package_DIP:DIP-14_W7.62mm", L"U", L"RS_LATCH", L"MyWx111" },
         { L"LED_D:LED_D3.0mm", L"LED", L"LED", L"MyWx111" },
-        { L"TestPoint:TestPoint_Pad", L"TP", L"PROBE", L"MyWx111" }
+        { L"TestPoint:TestPoint_Pad", L"TP", L"PROBE", L"MyWx111" },
+        { L"Connector_PinHeader_2.54mm:PinHeader_1x01_P2.54mm_Vertical", L"J", L"LEVEL",
+          L"MyWx111" }
     };
 
     /// 取元件类型在映射表中的下标。
@@ -102,6 +104,8 @@ namespace
             return 18;
         case ComponentType::LogicProbe:
             return 19;
+        case ComponentType::LevelSource:
+            return 20;
         }
         return -1;
     }

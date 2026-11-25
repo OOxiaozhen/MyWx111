@@ -1,0 +1,1119 @@
+{
+  "template_slug": "architecture-deck",
+  "selected_slides": [
+    2,
+    4,
+    5,
+    7,
+    11,
+    12,
+    15
+  ],
+  "edits": [
+    {
+      "slide": 2,
+      "slot_id": "s2_sh10_p0r0",
+      "new_text": "从需求到工程交付"
+    },
+    {
+      "slide": 2,
+      "slot_id": "s2_sh11_p0r0",
+      "new_text": "模型设计"
+    },
+    {
+      "slide": 2,
+      "slot_id": "s2_sh14_p0r0",
+      "new_text": "元件库"
+    },
+    {
+      "slide": 2,
+      "slot_id": "s2_sh16_p0r0",
+      "new_text": "原理图编辑"
+    },
+    {
+      "slide": 2,
+      "slot_id": "s2_sh18_p0r0",
+      "new_text": "仿真验证"
+    },
+    {
+      "slide": 2,
+      "slot_id": "s2_sh20_p0r0",
+      "new_text": "工程保存"
+    },
+    {
+      "slide": 2,
+      "slot_id": "s2_sh24_p0r0",
+      "new_text": "网表导出"
+    },
+    {
+      "slide": 2,
+      "slot_id": "s2_sh29_p0r0",
+      "new_text": "PCB 数据"
+    },
+    {
+      "slide": 2,
+      "slot_id": "s2_sh34_p0r0",
+      "new_text": "需求拆解"
+    },
+    {
+      "slide": 2,
+      "slot_id": "s2_sh39_p0r0",
+      "new_text": "数据结构"
+    },
+    {
+      "slide": 2,
+      "slot_id": "s2_sh51_p0r0",
+      "new_text": "引脚定义"
+    },
+    {
+      "slide": 2,
+      "slot_id": "s2_sh52_p0r0",
+      "new_text": "正交布线"
+    },
+    {
+      "slide": 2,
+      "slot_id": "s2_sh53_p0r0",
+      "new_text": "逻辑传播"
+    },
+    {
+      "slide": 2,
+      "slot_id": "s2_sh54_p0r0",
+      "new_text": "版本化文件"
+    },
+    {
+      "slide": 2,
+      "slot_id": "s2_sh60_p0r0",
+      "new_text": "格式适配"
+    },
+    {
+      "slide": 2,
+      "slot_id": "s2_sh63_p0r0",
+      "new_text": "需求→模型"
+    },
+    {
+      "slide": 2,
+      "slot_id": "s2_sh66_p0r0",
+      "new_text": "模型→画布"
+    },
+    {
+      "slide": 2,
+      "slot_id": "s2_sh69_p0r0",
+      "new_text": "连线→网络"
+    },
+    {
+      "slide": 2,
+      "slot_id": "s2_sh70_p0r0",
+      "new_text": "网络→输出"
+    },
+    {
+      "slide": 2,
+      "slot_id": "s2_sh71_p0r0",
+      "new_text": "保存→重载"
+    },
+    {
+      "slide": 2,
+      "slot_id": "s2_sh72_p0r0",
+      "new_text": "原理图→网表"
+    },
+    {
+      "slide": 2,
+      "slot_id": "s2_sh88_p0r0",
+      "new_text": "输入"
+    },
+    {
+      "slide": 2,
+      "slot_id": "s2_sh89_p0r0",
+      "new_text": "处理"
+    },
+    {
+      "slide": 2,
+      "slot_id": "s2_sh91_p0r0",
+      "new_text": "输出"
+    },
+    {
+      "slide": 2,
+      "slot_id": "s2_sh92_p0r0",
+      "new_text": "创建"
+    },
+    {
+      "slide": 2,
+      "slot_id": "s2_sh93_p0r0",
+      "new_text": "编辑"
+    },
+    {
+      "slide": 2,
+      "slot_id": "s2_sh94_p0r0",
+      "new_text": "验证"
+    },
+    {
+      "slide": 2,
+      "slot_id": "s2_sh95_p0r0",
+      "new_text": "交付"
+    },
+    {
+      "slide": 2,
+      "slot_id": "s2_sh96_p0r0",
+      "new_text": "对象模型"
+    },
+    {
+      "slide": 2,
+      "slot_id": "s2_sh97_p0r0",
+      "new_text": "交互编辑"
+    },
+    {
+      "slide": 2,
+      "slot_id": "s2_sh103_p0r0",
+      "new_text": "仿真求值"
+    },
+    {
+      "slide": 2,
+      "slot_id": "s2_sh104_p0r0",
+      "new_text": "文件读写"
+    },
+    {
+      "slide": 2,
+      "slot_id": "s2_sh105_p0r0",
+      "new_text": "成果汇总"
+    },
+    {
+      "slide": 2,
+      "slot_id": "s2_sh106_p0r0",
+      "new_text": "阶段闭环"
+    },
+    {
+      "slide": 2,
+      "slot_id": "s2_sh107_p0r0",
+      "new_text": "工程闭环"
+    },
+    {
+      "slide": 4,
+      "slot_id": "s4_sh39_p0r0",
+      "new_text": "用户界面"
+    },
+    {
+      "slide": 4,
+      "slot_id": "s4_sh40_p0r0",
+      "new_text": "工具栏"
+    },
+    {
+      "slide": 4,
+      "slot_id": "s4_sh41_p0r0",
+      "new_text": "属性面板"
+    },
+    {
+      "slide": 4,
+      "slot_id": "s4_sh102_p0r0",
+      "new_text": "电路画布"
+    },
+    {
+      "slide": 4,
+      "slot_id": "s4_sh112_p0r0",
+      "new_text": "鼠标事件"
+    },
+    {
+      "slide": 4,
+      "slot_id": "s4_sh112_p0r1",
+      "new_text": "元件模型"
+    },
+    {
+      "slide": 4,
+      "slot_id": "s4_sh112_p0r2",
+      "new_text": "Component"
+    },
+    {
+      "slide": 4,
+      "slot_id": "s4_sh113_p0r0",
+      "new_text": "Pin"
+    },
+    {
+      "slide": 4,
+      "slot_id": "s4_sh123_p0r0",
+      "new_text": "Wire"
+    },
+    {
+      "slide": 4,
+      "slot_id": "s4_sh126_p0r0",
+      "new_text": "Circuit"
+    },
+    {
+      "slide": 4,
+      "slot_id": "s4_sh127_p0r0",
+      "new_text": "元件库"
+    },
+    {
+      "slide": 4,
+      "slot_id": "s4_sh129_p0r0",
+      "new_text": "输入输出"
+    },
+    {
+      "slide": 4,
+      "slot_id": "s4_sh137_p0r0",
+      "new_text": "逻辑门"
+    },
+    {
+      "slide": 4,
+      "slot_id": "s4_sh158_p0r0",
+      "new_text": "分线器"
+    },
+    {
+      "slide": 4,
+      "slot_id": "s4_sh159_p0r0",
+      "new_text": "门电路"
+    },
+    {
+      "slide": 4,
+      "slot_id": "s4_sh168_p0r0",
+      "new_text": "输入脚"
+    },
+    {
+      "slide": 4,
+      "slot_id": "s4_sh170_p0r0",
+      "new_text": "输出脚"
+    },
+    {
+      "slide": 4,
+      "slot_id": "s4_sh174_p0r0",
+      "new_text": "引脚序号"
+    },
+    {
+      "slide": 4,
+      "slot_id": "s4_sh181_p0r0",
+      "new_text": "连线端点"
+    },
+    {
+      "slide": 4,
+      "slot_id": "s4_sh183_p0r0",
+      "new_text": "网络关系"
+    },
+    {
+      "slide": 4,
+      "slot_id": "s4_sh185_p0r0",
+      "new_text": "编辑功能"
+    },
+    {
+      "slide": 4,
+      "slot_id": "s4_sh187_p0r0",
+      "new_text": "放置"
+    },
+    {
+      "slide": 4,
+      "slot_id": "s4_sh192_p0r0",
+      "new_text": "选择"
+    },
+    {
+      "slide": 4,
+      "slot_id": "s4_sh10_p0r0",
+      "new_text": "拖动"
+    },
+    {
+      "slide": 4,
+      "slot_id": "s4_sh10_p1r0",
+      "new_text": "旋转"
+    },
+    {
+      "slide": 4,
+      "slot_id": "s4_sh11_p0r0",
+      "new_text": "布线"
+    },
+    {
+      "slide": 4,
+      "slot_id": "s4_sh11_p1r0",
+      "new_text": "撤销"
+    },
+    {
+      "slide": 4,
+      "slot_id": "s4_sh8_p0r0",
+      "new_text": "重做"
+    },
+    {
+      "slide": 4,
+      "slot_id": "s4_sh8_p1r0",
+      "new_text": "保存"
+    },
+    {
+      "slide": 4,
+      "slot_id": "s4_sh8_p2r0",
+      "new_text": "加载"
+    },
+    {
+      "slide": 4,
+      "slot_id": "s4_sh9_p0r0",
+      "new_text": "仿真器"
+    },
+    {
+      "slide": 4,
+      "slot_id": "s4_sh9_p1r0",
+      "new_text": "网表导出"
+    },
+    {
+      "slide": 4,
+      "slot_id": "s4_sh196_p0r0",
+      "new_text": "gEDA 导出"
+    },
+    {
+      "slide": 4,
+      "slot_id": "s4_sh198_p0r0",
+      "new_text": "PCB 文件"
+    },
+    {
+      "slide": 4,
+      "slot_id": "s4_sh200_p0r0",
+      "new_text": "模块职责清晰"
+    },
+    {
+      "slide": 4,
+      "slot_id": "s4_sh202_p0r0",
+      "new_text": "数据语义统一"
+    },
+    {
+      "slide": 4,
+      "slot_id": "s4_sh204_p0r0",
+      "new_text": "id + pinIndex"
+    },
+    {
+      "slide": 4,
+      "slot_id": "s4_sh206_p0r0",
+      "new_text": "模型驱动视图"
+    },
+    {
+      "slide": 4,
+      "slot_id": "s4_sh209_p0r0",
+      "new_text": "输入驱动"
+    },
+    {
+      "slide": 4,
+      "slot_id": "s4_sh3_p0r0",
+      "new_text": "MyWx111 模块架构"
+    },
+    {
+      "slide": 5,
+      "slot_id": "s5_sh18_p0r0",
+      "new_text": "数据模型"
+    },
+    {
+      "slide": 5,
+      "slot_id": "s5_sh21_p0r0",
+      "new_text": "引脚布局"
+    },
+    {
+      "slide": 5,
+      "slot_id": "s5_sh34_p0r0",
+      "new_text": "正交路由"
+    },
+    {
+      "slide": 5,
+      "slot_id": "s5_sh36_p0r0",
+      "new_text": "路径简化"
+    },
+    {
+      "slide": 5,
+      "slot_id": "s5_sh38_p0r0",
+      "new_text": "逻辑仿真"
+    },
+    {
+      "slide": 5,
+      "slot_id": "s5_sh42_p0r0",
+      "new_text": "工程序列化"
+    },
+    {
+      "slide": 5,
+      "slot_id": "s5_sh43_p0r0",
+      "new_text": "格式导出"
+    },
+    {
+      "slide": 5,
+      "slot_id": "s5_sh44_p0r0",
+      "new_text": "端点引用"
+    },
+    {
+      "slide": 5,
+      "slot_id": "s5_sh45_p0r0",
+      "new_text": "世界坐标"
+    },
+    {
+      "slide": 5,
+      "slot_id": "s5_sh46_p0r0",
+      "new_text": "PinSide"
+    },
+    {
+      "slide": 5,
+      "slot_id": "s5_sh47_p0r0",
+      "new_text": "引出段 20"
+    },
+    {
+      "slide": 5,
+      "slot_id": "s5_sh50_p0r0",
+      "new_text": "L / Z 形"
+    },
+    {
+      "slide": 5,
+      "slot_id": "s5_sh59_p0r0",
+      "new_text": "共线合并"
+    },
+    {
+      "slide": 5,
+      "slot_id": "s5_sh61_p0r0",
+      "new_text": "手动折点"
+    },
+    {
+      "slide": 5,
+      "slot_id": "s5_sh63_p0r0",
+      "new_text": "BuildPins"
+    },
+    {
+      "slide": 5,
+      "slot_id": "s5_sh65_p0r0",
+      "new_text": "Evaluate"
+    },
+    {
+      "slide": 5,
+      "slot_id": "s5_sh66_p0r0",
+      "new_text": "LogicLevel"
+    },
+    {
+      "slide": 5,
+      "slot_id": "s5_sh67_p0r0",
+      "new_text": "Unknown"
+    },
+    {
+      "slide": 5,
+      "slot_id": "s5_sh68_p0r0",
+      "new_text": "pin→net"
+    },
+    {
+      "slide": 5,
+      "slot_id": "s5_sh73_p0r0",
+      "new_text": "Union-Find"
+    },
+    {
+      "slide": 5,
+      "slot_id": "s5_sh74_p0r0",
+      "new_text": "JSON v3"
+    },
+    {
+      "slide": 5,
+      "slot_id": "s5_sh54_p0r0",
+      "new_text": "暂存校验"
+    },
+    {
+      "slide": 5,
+      "slot_id": "s5_sh54_p1r0",
+      "new_text": "netlist"
+    },
+    {
+      "slide": 5,
+      "slot_id": "s5_sh56_p0r0",
+      "new_text": "gEDA .net"
+    },
+    {
+      "slide": 5,
+      "slot_id": "s5_sh56_p1r0",
+      "new_text": "pcb .pcb"
+    },
+    {
+      "slide": 5,
+      "slot_id": "s5_sh52_p0r0",
+      "new_text": "位置"
+    },
+    {
+      "slide": 5,
+      "slot_id": "s5_sh52_p1r0",
+      "new_text": "朝向 0/90/180/270"
+    },
+    {
+      "slide": 5,
+      "slot_id": "s5_sh24_p0r0",
+      "new_text": "位宽 1–32"
+    },
+    {
+      "slide": 5,
+      "slot_id": "s5_sh27_p0r0",
+      "new_text": "核心数据模型与能力"
+    },
+    {
+      "slide": 7,
+      "slot_id": "s7_sh49_p0r0",
+      "new_text": "电路对象"
+    },
+    {
+      "slide": 7,
+      "slot_id": "s7_sh8_p0r0",
+      "new_text": "创建元件"
+    },
+    {
+      "slide": 7,
+      "slot_id": "s7_sh9_p0r0",
+      "new_text": "生成引脚"
+    },
+    {
+      "slide": 7,
+      "slot_id": "s7_sh11_p0r0",
+      "new_text": "属性写入"
+    },
+    {
+      "slide": 7,
+      "slot_id": "s7_sh15_p0r0",
+      "new_text": "画布渲染"
+    },
+    {
+      "slide": 7,
+      "slot_id": "s7_sh16_p0r0",
+      "new_text": "位置变换"
+    },
+    {
+      "slide": 7,
+      "slot_id": "s7_sh17_p0r0",
+      "new_text": "命中选择"
+    },
+    {
+      "slide": 7,
+      "slot_id": "s7_sh33_p0r0",
+      "new_text": "编辑仿真工作流"
+    },
+    {
+      "slide": 7,
+      "slot_id": "s7_sh34_p0r0",
+      "new_text": "旋转变换"
+    },
+    {
+      "slide": 7,
+      "slot_id": "s7_sh37_p0r0",
+      "new_text": "正交走线"
+    },
+    {
+      "slide": 7,
+      "slot_id": "s7_sh38_p0r0",
+      "new_text": "保存 JSON"
+    },
+    {
+      "slide": 7,
+      "slot_id": "s7_sh39_p0r0",
+      "new_text": "加载校验"
+    },
+    {
+      "slide": 7,
+      "slot_id": "s7_sh41_p0r0",
+      "new_text": "构建网络"
+    },
+    {
+      "slide": 7,
+      "slot_id": "s7_sh42_p0r0",
+      "new_text": "合并节点"
+    },
+    {
+      "slide": 7,
+      "slot_id": "s7_sh45_p0r0",
+      "new_text": "调用 Evaluate"
+    },
+    {
+      "slide": 7,
+      "slot_id": "s7_sh46_p0r0",
+      "new_text": "传播电平"
+    },
+    {
+      "slide": 7,
+      "slot_id": "s7_sh51_p0r0",
+      "new_text": "稳定判断"
+    },
+    {
+      "slide": 7,
+      "slot_id": "s7_sh52_p0r0",
+      "new_text": "输出探针"
+    },
+    {
+      "slide": 7,
+      "slot_id": "s7_sh53_p0r0",
+      "new_text": "设置输入"
+    },
+    {
+      "slide": 7,
+      "slot_id": "s7_sh54_p0r0",
+      "new_text": "InputPin"
+    },
+    {
+      "slide": 7,
+      "slot_id": "s7_sh55_p0r0",
+      "new_text": "AndGate"
+    },
+    {
+      "slide": 7,
+      "slot_id": "s7_sh56_p0r0",
+      "new_text": "XorGate"
+    },
+    {
+      "slide": 7,
+      "slot_id": "s7_sh57_p0r0",
+      "new_text": "Splitter"
+    },
+    {
+      "slide": 7,
+      "slot_id": "s7_sh59_p0r0",
+      "new_text": "LedIndicator"
+    },
+    {
+      "slide": 7,
+      "slot_id": "s7_sh60_p0r0",
+      "new_text": "LogicProbe"
+    },
+    {
+      "slide": 7,
+      "slot_id": "s7_sh61_p0r0",
+      "new_text": "TextLabel"
+    },
+    {
+      "slide": 7,
+      "slot_id": "s7_sh62_p0r0",
+      "new_text": "Vcc / Gnd"
+    },
+    {
+      "slide": 7,
+      "slot_id": "s7_sh63_p0r0",
+      "new_text": "refDes=U1"
+    },
+    {
+      "slide": 7,
+      "slot_id": "s7_sh64_p0r0",
+      "new_text": "value=7486"
+    },
+    {
+      "slide": 7,
+      "slot_id": "s7_sh65_p0r0",
+      "new_text": "DIP14"
+    },
+    {
+      "slide": 7,
+      "slot_id": "s7_sh66_p0r0",
+      "new_text": "slot=1..4"
+    },
+    {
+      "slide": 7,
+      "slot_id": "s7_sh67_p0r0",
+      "new_text": "网表 T 行"
+    },
+    {
+      "slide": 7,
+      "slot_id": "s7_sh68_p0r0",
+      "new_text": "封装映射"
+    },
+    {
+      "slide": 7,
+      "slot_id": "s7_sh69_p0r0",
+      "new_text": "PCB 初始布局"
+    },
+    {
+      "slide": 7,
+      "slot_id": "s7_sh43_p0r0",
+      "new_text": "UndoStack"
+    },
+    {
+      "slide": 11,
+      "slot_id": "s11_sh4_p0r0",
+      "new_text": "逻辑网络求值流程"
+    },
+    {
+      "slide": 11,
+      "slot_id": "s11_sh7_p0r0",
+      "new_text": "Circuit"
+    },
+    {
+      "slide": 11,
+      "slot_id": "s11_sh8_p0r0",
+      "new_text": "元件引脚"
+    },
+    {
+      "slide": 11,
+      "slot_id": "s11_sh9_p0r0",
+      "new_text": "连线端点"
+    },
+    {
+      "slide": 11,
+      "slot_id": "s11_sh9_p1r0",
+      "new_text": "网络构建"
+    },
+    {
+      "slide": 11,
+      "slot_id": "s11_sh10_p0r0",
+      "new_text": "并查集 Union"
+    },
+    {
+      "slide": 11,
+      "slot_id": "s11_sh15_p0r0",
+      "new_text": "输入网络"
+    },
+    {
+      "slide": 11,
+      "slot_id": "s11_sh22_p0r0",
+      "new_text": "门电路求值"
+    },
+    {
+      "slide": 11,
+      "slot_id": "s11_sh36_p0r0",
+      "new_text": "输出驱动"
+    },
+    {
+      "slide": 11,
+      "slot_id": "s11_sh41_p0r0",
+      "new_text": "驱动合并"
+    },
+    {
+      "slide": 11,
+      "slot_id": "s11_sh128_p0r0",
+      "new_text": "网络状态"
+    },
+    {
+      "slide": 11,
+      "slot_id": "s11_sh128_p1r0",
+      "new_text": "未知态"
+    },
+    {
+      "slide": 11,
+      "slot_id": "s11_sh128_p2r0",
+      "new_text": "稳定收敛"
+    },
+    {
+      "slide": 11,
+      "slot_id": "s11_sh128_p3r0",
+      "new_text": "反馈检测"
+    },
+    {
+      "slide": 11,
+      "slot_id": "s11_sh129_p0r0",
+      "new_text": "LogicLevel"
+    },
+    {
+      "slide": 11,
+      "slot_id": "s11_sh129_p1r0",
+      "new_text": "InputPin"
+    },
+    {
+      "slide": 11,
+      "slot_id": "s11_sh129_p2r0",
+      "new_text": "AndGate"
+    },
+    {
+      "slide": 11,
+      "slot_id": "s11_sh129_p3r0",
+      "new_text": "OrGate"
+    },
+    {
+      "slide": 11,
+      "slot_id": "s11_sh149_p0r0",
+      "new_text": "NotGate"
+    },
+    {
+      "slide": 11,
+      "slot_id": "s11_sh29_p0r0",
+      "new_text": "NandGate"
+    },
+    {
+      "slide": 11,
+      "slot_id": "s11_sh29_p1r0",
+      "new_text": "NorGate"
+    },
+    {
+      "slide": 11,
+      "slot_id": "s11_sh29_p2r0",
+      "new_text": "XorGate"
+    },
+    {
+      "slide": 11,
+      "slot_id": "s11_sh29_p3r0",
+      "new_text": "XNOR"
+    },
+    {
+      "slide": 11,
+      "slot_id": "s11_sh30_p0r0",
+      "new_text": "Buffer"
+    },
+    {
+      "slide": 11,
+      "slot_id": "s11_sh30_p1r0",
+      "new_text": "TriState"
+    },
+    {
+      "slide": 11,
+      "slot_id": "s11_sh30_p2r0",
+      "new_text": "LED"
+    },
+    {
+      "slide": 11,
+      "slot_id": "s11_sh30_p3r0",
+      "new_text": "LogicProbe"
+    },
+    {
+      "slide": 11,
+      "slot_id": "s11_sh31_p0r0",
+      "new_text": "Splitter 透明导通"
+    },
+    {
+      "slide": 11,
+      "slot_id": "s11_sh31_p1r0",
+      "new_text": "pin→net"
+    },
+    {
+      "slide": 11,
+      "slot_id": "s11_sh31_p2r0",
+      "new_text": "wire→net"
+    },
+    {
+      "slide": 12,
+      "slot_id": "s12_sh2_p0r0",
+      "new_text": "电路工程闭环"
+    },
+    {
+      "slide": 12,
+      "slot_id": "s12_sh9_p0r0",
+      "new_text": "放置元件"
+    },
+    {
+      "slide": 12,
+      "slot_id": "s12_sh14_p0r0",
+      "new_text": "连接引脚"
+    },
+    {
+      "slide": 12,
+      "slot_id": "s12_sh15_p0r0",
+      "new_text": "生成折线路径"
+    },
+    {
+      "slide": 12,
+      "slot_id": "s12_sh15_p1r0",
+      "new_text": "设置输入电平"
+    },
+    {
+      "slide": 12,
+      "slot_id": "s12_sh18_p0r0",
+      "new_text": "仿真传播"
+    },
+    {
+      "slide": 12,
+      "slot_id": "s12_sh18_p1r0",
+      "new_text": "观察输出"
+    },
+    {
+      "slide": 12,
+      "slot_id": "s12_sh19_p0r0",
+      "new_text": "修改属性"
+    },
+    {
+      "slide": 12,
+      "slot_id": "s12_sh19_p1r0",
+      "new_text": "记录撤销栈"
+    },
+    {
+      "slide": 12,
+      "slot_id": "s12_sh20_p0r0",
+      "new_text": "保存项目"
+    },
+    {
+      "slide": 12,
+      "slot_id": "s12_sh20_p1r0",
+      "new_text": "解析暂存"
+    },
+    {
+      "slide": 12,
+      "slot_id": "s12_sh21_p0r0",
+      "new_text": "校验数据"
+    },
+    {
+      "slide": 12,
+      "slot_id": "s12_sh21_p1r0",
+      "new_text": "恢复电路"
+    },
+    {
+      "slide": 12,
+      "slot_id": "s12_sh22_p0r0",
+      "new_text": "导出网表"
+    },
+    {
+      "slide": 12,
+      "slot_id": "s12_sh25_p0r0",
+      "new_text": "封装映射"
+    },
+    {
+      "slide": 12,
+      "slot_id": "s12_sh25_p1r0",
+      "new_text": "PCB 文件"
+    },
+    {
+      "slide": 12,
+      "slot_id": "s12_sh50_p0r0",
+      "new_text": "文件标记"
+    },
+    {
+      "slide": 12,
+      "slot_id": "s12_sh52_p0r0",
+      "new_text": "MyWx111-Circuit"
+    },
+    {
+      "slide": 12,
+      "slot_id": "s12_sh54_p0r0",
+      "new_text": "组件数组"
+    },
+    {
+      "slide": 12,
+      "slot_id": "s12_sh56_p0r0",
+      "new_text": "连线数组"
+    },
+    {
+      "slide": 12,
+      "slot_id": "s12_sh70_p0r0",
+      "new_text": "bends 折点"
+    },
+    {
+      "slide": 12,
+      "slot_id": "s12_sh71_p0r0",
+      "new_text": "refDes / slot"
+    },
+    {
+      "slide": 15,
+      "slot_id": "s15_sh2_p0r0",
+      "new_text": "项目能力全景"
+    },
+    {
+      "slide": 15,
+      "slot_id": "s15_sh16_p0r0",
+      "new_text": "创建工程"
+    },
+    {
+      "slide": 15,
+      "slot_id": "s15_sh16_p1r0",
+      "new_text": "添加元件"
+    },
+    {
+      "slide": 15,
+      "slot_id": "s15_sh17_p0r0",
+      "new_text": "构建连接"
+    },
+    {
+      "slide": 15,
+      "slot_id": "s15_sh18_p0r0",
+      "new_text": "调整属性"
+    },
+    {
+      "slide": 15,
+      "slot_id": "s15_sh19_p0r0",
+      "new_text": "仿真验证"
+    },
+    {
+      "slide": 15,
+      "slot_id": "s15_sh20_p0r0",
+      "new_text": "保存版本"
+    },
+    {
+      "slide": 15,
+      "slot_id": "s15_sh21_p0r0",
+      "new_text": "导出交换"
+    },
+    {
+      "slide": 15,
+      "slot_id": "s15_sh22_p0r0",
+      "new_text": "工程创建"
+    },
+    {
+      "slide": 15,
+      "slot_id": "s15_sh23_p0r0",
+      "new_text": "对象建模"
+    },
+    {
+      "slide": 15,
+      "slot_id": "s15_sh23_p1r0",
+      "new_text": "界面编辑"
+    },
+    {
+      "slide": 15,
+      "slot_id": "s15_sh24_p0r0",
+      "new_text": "网络分析"
+    },
+    {
+      "slide": 15,
+      "slot_id": "s15_sh24_p1r0",
+      "new_text": "结果观察"
+    },
+    {
+      "slide": 15,
+      "slot_id": "s15_sh25_p0r0",
+      "new_text": "工程持久化"
+    },
+    {
+      "slide": 15,
+      "slot_id": "s15_sh25_p1r0",
+      "new_text": "制造数据"
+    },
+    {
+      "slide": 15,
+      "slot_id": "s15_sh49_p0r0",
+      "new_text": "UI 层"
+    },
+    {
+      "slide": 15,
+      "slot_id": "s15_sh47_p0r0",
+      "new_text": "Model 层"
+    },
+    {
+      "slide": 15,
+      "slot_id": "s15_sh45_p0r0",
+      "new_text": "View 层"
+    },
+    {
+      "slide": 15,
+      "slot_id": "s15_sh43_p0r0",
+      "new_text": "Sim 层"
+    },
+    {
+      "slide": 15,
+      "slot_id": "s15_sh41_p0r0",
+      "new_text": "IO 层"
+    },
+    {
+      "slide": 15,
+      "slot_id": "s15_sh39_p0r0",
+      "new_text": "元件类型"
+    },
+    {
+      "slide": 15,
+      "slot_id": "s15_sh53_p0r0",
+      "new_text": "引脚定义"
+    },
+    {
+      "slide": 15,
+      "slot_id": "s15_sh54_p0r0",
+      "new_text": "电气连接"
+    },
+    {
+      "slide": 15,
+      "slot_id": "s15_sh55_p0r0",
+      "new_text": "几何路径"
+    },
+    {
+      "slide": 15,
+      "slot_id": "s15_sh59_p0r0",
+      "new_text": "逻辑状态"
+    },
+    {
+      "slide": 15,
+      "slot_id": "s15_sh60_p0r0",
+      "new_text": "JSON v3"
+    },
+    {
+      "slide": 15,
+      "slot_id": "s15_sh61_p0r0",
+      "new_text": "通用网表"
+    },
+    {
+      "slide": 15,
+      "slot_id": "s15_sh65_p0r0",
+      "new_text": "gEDA 网表"
+    },
+    {
+      "slide": 15,
+      "slot_id": "s15_sh66_p0r0",
+      "new_text": "PCB 初始布局"
+    },
+    {
+      "slide": 15,
+      "slot_id": "s15_sh67_p0r0",
+      "new_text": "工程闭环"
+    }
+  ]
+}

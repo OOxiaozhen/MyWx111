@@ -37,7 +37,7 @@ struct SymbolGeometry
     std::vector<SymbolArc> arcs;           ///< 附加圆弧
     wxPoint inversionCenter;               ///< 反相小圆圆心（本地坐标）
     int inversionRadius = 0;               ///< 反相小圆半径；0 表示不绘制
-    wxPoint labelAnchor;                   ///< 名称文字锚点（本地坐标）
+    wxPoint labelAnchor;                   ///< 文字锚点（本地坐标）；目前仅 TextLabel 的文本绘制使用
 };
 
 /// 电路元件抽象基类。
@@ -77,6 +77,14 @@ public:
 
     /// @return 该元件是否需要在仿真中被求值；无输出元件（如文本标注）返回 false
     virtual bool ParticipatesInSimulation() const { return true; }
+
+    /// @return 该元件是否提供「点击切换电平」的圆圈热区。
+    /// 只有带电平的元件（输入引脚、电平源）会返回 true，
+    /// 其余元件用默认 false 即可，无需逐个重写。
+    virtual bool HasLevelToggle() const { return false; }
+
+    /// @return 圆圈热区中心（本地未变换坐标）；仅 HasLevelToggle() 为 true 时有意义
+    virtual wxPoint GetLevelToggleCenter() const { return wxPoint(0, 0); }
 
     // ── 标识 ──
     /// @return 元件唯一 id

@@ -59,6 +59,7 @@ private:
         ID_SimulationEvaluateOnce,       ///< 仿真 - 重新求值
         ID_ToolSelect,                   ///< 工具 - 选择
         ID_ToolWire,                     ///< 工具 - 连线
+        ID_ToolPlaceNote,                ///< 工具 - 文本注释
         ID_ProjectOptions,               ///< 项目 - 项目选项
         ID_ProjectAnalyze,               ///< 项目 - 分析电路
         ID_HelpShortcuts                 ///< 帮助 - 快捷键参考
@@ -205,6 +206,10 @@ private:
     void OnSelectAll(wxCommandEvent& event);
     void OnSelectTool(wxCommandEvent& event);
     void OnWireTool(wxCommandEvent& event);
+
+    /// 切到文本注释工具：点击画布放置注释并输入文字。
+    /// @param event 命令事件（未使用）
+    void OnPlaceNoteTool(wxCommandEvent& event);
     void OnZoomIn(wxCommandEvent& event);
     void OnZoomOut(wxCommandEvent& event);
     void OnZoomReset(wxCommandEvent& event);

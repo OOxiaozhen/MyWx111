@@ -119,14 +119,16 @@ int MapLogicalPinToDip14(ComponentType type, int slot, int logicalPinIndex)
         return -1;
     }
 
+    // VccSource/GndSource 已废弃，分支仅为满足穷举（工厂已拒绝创建，运行期不可达）
     case ComponentType::VccSource:
     case ComponentType::GndSource:
+    case ComponentType::LevelSource:
     case ComponentType::ClockSource:
     case ComponentType::LedIndicator:
     case ComponentType::LogicProbe:
     case ComponentType::InputPin:
     case ComponentType::OutputPin:
-        // 单脚元件（连接器 / 电源源 / 显示类）：唯一引脚映射到第 1 脚
+        // 单脚元件（连接器 / 电平源 / 显示类）：唯一引脚映射到第 1 脚
         return (logicalPinIndex == 0) ? 1 : -1;
 
     case ComponentType::Splitter:
@@ -143,6 +145,7 @@ wxString DefaultFootprint(ComponentType type)
     {
     case ComponentType::InputPin:
     case ComponentType::OutputPin:
+    case ComponentType::LevelSource:
         return wxString(kSinglePinFootprint);
 
     case ComponentType::ClockSource:
@@ -202,6 +205,8 @@ wxString DefaultValue(ComponentType type)
         return wxString(L"PROBE");
     case ComponentType::VccSource:
         return wxString(L"VCC");
+    case ComponentType::LevelSource:
+        return wxString(L"LEVEL_SOURCE");
     case ComponentType::GndSource:
         return wxString(L"GND");
     case ComponentType::TextLabel:

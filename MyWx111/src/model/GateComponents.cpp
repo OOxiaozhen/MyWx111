@@ -908,6 +908,46 @@ void TextLabel::DescribeSymbol(SymbolGeometry& out) const
     out.labelAnchor = wxPoint(0, 14);
 }
 
+// ───────────────────────── 统一电平源 ─────────────────────────
+
+LevelSource::LevelSource(int id)
+    : Component(ComponentType::LevelSource, id)
+{
+}
+
+std::vector<Pin> LevelSource::BuildPins() const
+{
+    std::vector<Pin> pins;
+
+    // 单输出脚，底部出线（与已废弃的 VccSource 保持一致）
+    Pin out;
+    out.index = 0;
+    out.offset = wxPoint(20, kComponentBodySize + kPinLength);
+    out.direction = PinDirection::Output;
+    pins.push_back(out);
+
+    return pins;
+}
+
+wxRect LevelSource::GetLocalBounds() const
+{
+    return BodyBounds();
+}
+
+void LevelSource::DescribeSymbol(SymbolGeometry& out) const
+{
+    // 方框主体；框内的 1/0 文字由渲染层按当前电平绘制，
+    // 模型层只提供几何，不产出文字
+    out.body = { wxPoint(4, 4), wxPoint(36, 4), wxPoint(36, 36), wxPoint(4, 36) };
+    out.labelAnchor = wxPoint(0, -kComponentBodySize);
+}
+
+LogicLevel LevelSource::Evaluate(const std::vector<LogicLevel>&) const
+{
+    // 恒定的驱动源，与输入无关
+    return m_level;
+}
+
 // ───────────────────────── 元件工厂 ─────────────────────────
 
 std::unique_ptr<Component> ComponentFactory::Create(ComponentType type, int id)
@@ -934,10 +974,13 @@ std::unique_ptr<Component> ComponentFactory::Create(ComponentType type, int id)
         return std::make_unique<Splitter>(id);
     case ComponentType::TextLabel:
         return std::make_unique<TextLabel>(id);
+    // 已废弃类型：旧工程文件可能仍含这些元件，返回 nullptr 让加载端
+    // 走「类型无效，已跳过」分支，而不是在此处报错
     case ComponentType::VccSource:
-        return std::make_unique<VccSource>(id);
     case ComponentType::GndSource:
-        return std::make_unique<GndSource>(id);
+    case ComponentType::DFlipFlop:
+    case ComponentType::RsLatch:
+        return nullptr;
     case ComponentType::ClockSource:
         return std::make_unique<ClockSource>(id);
     case ComponentType::XnorGate:
@@ -946,14 +989,12 @@ std::unique_ptr<Component> ComponentFactory::Create(ComponentType type, int id)
         return std::make_unique<BufferGate>(id);
     case ComponentType::TriStateGate:
         return std::make_unique<TriStateGate>(id);
-    case ComponentType::DFlipFlop:
-        return std::make_unique<DFlipFlop>(id);
-    case ComponentType::RsLatch:
-        return std::make_unique<RsLatch>(id);
     case ComponentType::LedIndicator:
         return std::make_unique<LedIndicator>(id);
     case ComponentType::LogicProbe:
         return std::make_unique<LogicProbe>(id);
+    case ComponentType::LevelSource:
+        return std::make_unique<LevelSource>(id);
     default:
         return nullptr;
     }

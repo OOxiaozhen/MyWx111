@@ -56,6 +56,13 @@ public:
     void DrawSelectionRect(wxGraphicsContext& gc, const wxRect& worldRect,
                            const GridTransform& transform) const;
 
+    /// 绘制全部画布注释（半透明底 + 多行文字），应绘制在元件与连线之上。
+    /// @param gc        图形上下文
+    /// @param circuit   电路模型（提供注释列表与选中态）
+    /// @param transform 坐标变换（同时用于取当前缩放，按比例放大字号）
+    void DrawNotes(wxGraphicsContext& gc, const Circuit& circuit,
+                   const GridTransform& transform) const;
+
     /// 绘制连线工具进行中的临时线。
     /// 已确认的折点段画实线、仍在跟随鼠标的末段画虚线，便于用户区分。
     /// @param gc 图形上下文

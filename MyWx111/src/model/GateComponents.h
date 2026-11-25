@@ -140,6 +140,12 @@ public:
     /// @param level 新的电平
     void SetLevel(LogicLevel level) { m_level = level; }
 
+    bool HasLevelToggle() const override { return true; }
+    wxPoint GetLevelToggleCenter() const override
+    {
+        return wxPoint(kComponentBodySize / 2, kComponentBodySize / 2);
+    }
+
 private:
     LogicLevel m_level = LogicLevel::Low; ///< 用户设定的输出电平
 };
@@ -298,4 +304,34 @@ public:
 
     /// @param text 新文本（可含换行）
     void SetText(const wxString& text) { SetName(text); }
+};
+
+// ── 信号源 ──
+
+/// 统一电平源：单输出引脚，输出恒定高或低电平。
+/// 取代已废弃的 VccSource / GndSource，电平由属性面板下拉切换。
+class LevelSource : public Component
+{
+public:
+    /// @param id 元件唯一 id
+    explicit LevelSource(int id);
+    std::vector<Pin> BuildPins() const override;
+    wxRect GetLocalBounds() const override;
+    void DescribeSymbol(SymbolGeometry& out) const override;
+    LogicLevel Evaluate(const std::vector<LogicLevel>& inputs) const override;
+
+    /// @return 当前设定的电平（仅 High / Low）
+    LogicLevel GetLevel() const { return m_level; }
+
+    /// @param level 目标电平；仅接受 High / Low
+    void SetLevel(LogicLevel level) { m_level = level; }
+
+    bool HasLevelToggle() const override { return true; }
+    wxPoint GetLevelToggleCenter() const override
+    {
+        return wxPoint(kComponentBodySize / 2, kComponentBodySize / 2);
+    }
+
+private:
+    LogicLevel m_level = LogicLevel::High; ///< 输出电平，默认高
 };

@@ -204,10 +204,13 @@ void PropertiesPanel::RefreshFromCircuit()
 
     // 按类型显隐专属字段，避免无关字段挤满面板
     const bool isInputPin = (comp->GetType() == ComponentType::InputPin);
+    const bool isLevelSource = (comp->GetType() == ComponentType::LevelSource);
     const bool isClock = (comp->GetType() == ComponentType::ClockSource);
+    // 输入引脚与电平源共用同一个「电平」下拉
+    const bool showLevel = isInputPin || isLevelSource;
 
-    m_grid->Show(m_inputLevelLabel, isInputPin);
-    m_grid->Show(m_inputLevelCtrl, isInputPin);
+    m_grid->Show(m_inputLevelLabel, showLevel);
+    m_grid->Show(m_inputLevelCtrl, showLevel);
     m_grid->Show(m_clockFreqLabel, isClock);
     m_grid->Show(m_clockFreqCtrl, isClock);
     m_grid->Show(m_clockDutyLabel, isClock);
@@ -216,6 +219,16 @@ void PropertiesPanel::RefreshFromCircuit()
     if (isInputPin)
     {
         const int levelIndex = static_cast<int>(m_circuit.GetComponentInputLevel(comp->GetId()));
+        if (m_inputLevelCtrl->GetSelection() != levelIndex)
+        {
+            m_inputLevelCtrl->SetSelection(levelIndex);
+        }
+    }
+    else if (isLevelSource)
+    {
+        // 电平源只有高/低两态：索引 1 = 高，其余按低处理
+        const int levelIndex =
+            (m_circuit.GetComponentSourceLevel(comp->GetId()) == LogicLevel::High) ? 1 : 0;
         if (m_inputLevelCtrl->GetSelection() != levelIndex)
         {
             m_inputLevelCtrl->SetSelection(levelIndex);
@@ -405,8 +418,18 @@ void PropertiesPanel::OnInputLevelChanged(wxCommandEvent&)
         return;
     }
 
-    // 下拉项顺序与 LogicLevel 枚举一致：0=低 1=高 2=未知
-    m_circuit.SetComponentInputLevel(selectedId, static_cast<LogicLevel>(selection));
+    const Component* comp = m_circuit.FindComponent(selectedId);
+    if (comp != nullptr && comp->GetType() == ComponentType::LevelSource)
+    {
+        // 电平源只有高/低两态，复用三项下拉；选到「未知」时按非高即低处理
+        m_circuit.SetComponentSourceLevel(selectedId,
+                                         (selection == 1) ? LogicLevel::High : LogicLevel::Low);
+    }
+    else
+    {
+        // 下拉项顺序与 LogicLevel 枚举一致：0=低 1=高 2=未知
+        m_circuit.SetComponentInputLevel(selectedId, static_cast<LogicLevel>(selection));
+    }
     if (m_onChanged)
     {
         m_onChanged();

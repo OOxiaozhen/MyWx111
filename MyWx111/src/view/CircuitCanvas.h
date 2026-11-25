@@ -108,6 +108,7 @@ private:
     void OnSize(wxSizeEvent& event);
     void OnLeftDown(wxMouseEvent& event);
     void OnLeftUp(wxMouseEvent& event);
+    void OnLeftDClick(wxMouseEvent& event);
     void OnMotion(wxMouseEvent& event);
     void OnMiddleDown(wxMouseEvent& event);
     void OnMiddleUp(wxMouseEvent& event);
@@ -136,6 +137,10 @@ private:
     /// @param toPin 终点引脚；不合法时给出提示并保持走线状态
     void EndWire(const PinRef& toPin);
 
+    /// 弹出输入框编辑指定注释的文本；确认后写回，取消则保持原样。
+    /// @param noteId 注释 id
+    void EditNoteText(int noteId);
+
     /// 重绘并把状态同步到状态栏。
     void RefreshAndReport();
 
@@ -148,7 +153,7 @@ private:
     ToolContext m_tool;           ///< 当前工具上下文
     bool m_gridVisible = true;    ///< 是否显示网格背景
     sim::Simulator m_simulator;   ///< 组合逻辑仿真器
-    bool m_simEnabled = false;    ///< 是否处于仿真模式
+    bool m_simEnabled = true;    ///< 是否处于仿真模式（默认开启，颜色反馈无需手动打开）
 
     // 拖动状态
     bool m_dragging = false;                           ///< 是否正在拖动选中元件
@@ -159,6 +164,11 @@ private:
     bool m_rubberBanding = false;  ///< 是否正在框选
     wxPoint m_rubberStartWorld;    ///< 框选起点（世界坐标）
     wxPoint m_rubberEndWorld;      ///< 框选终点（世界坐标）
+
+    // 注释拖动状态
+    bool m_draggingNote = false;    ///< 是否正在拖动注释
+    int m_dragNoteId = -1;          ///< 正在拖动的注释 id
+    wxPoint m_noteDragOffset;       ///< 拖动起点相对注释左上角的偏移（世界坐标）
 
     // 连线状态
     bool m_wiring = false;         ///< 是否正在拉线

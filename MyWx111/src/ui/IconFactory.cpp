@@ -537,6 +537,59 @@ namespace
         gc.StrokePath(rays);
     }
 
+    /// 绘制「文本注释」图标：方框外框 + 内部三条横线（模拟文字行）。
+    /// @param gc 目标绘图上下文
+    /// @param color 线条颜色
+    void DrawNoteIcon(wxGraphicsContext& gc, const wxColour& color)
+    {
+        wxGraphicsPath frame = gc.CreatePath();
+        frame.MoveToPoint(5.0, 5.0);
+        frame.AddLineToPoint(19.0, 5.0);
+        frame.AddLineToPoint(19.0, 19.0);
+        frame.AddLineToPoint(5.0, 19.0);
+        frame.CloseSubpath();
+
+        gc.SetPen(MakeStrokePen(gc, color));
+        gc.SetBrush(*wxTRANSPARENT_BRUSH);
+        gc.StrokePath(frame);
+
+        // 三条递减横线代表文字行
+        wxGraphicsPath lines = gc.CreatePath();
+        lines.MoveToPoint(8.0, 9.5);
+        lines.AddLineToPoint(16.0, 9.5);
+        lines.MoveToPoint(8.0, 12.5);
+        lines.AddLineToPoint(16.0, 12.5);
+        lines.MoveToPoint(8.0, 15.5);
+        lines.AddLineToPoint(12.5, 15.5);
+        gc.SetPen(MakeStrokePen(gc, color, kDetailWidth));
+        gc.StrokePath(lines);
+    }
+
+    /// 绘制「电平源」图标：方框外框 + 内部数字 1 的折线近似。
+    /// @param gc 目标绘图上下文
+    /// @param color 线条颜色
+    void DrawLevelSourceIcon(wxGraphicsContext& gc, const wxColour& color)
+    {
+        wxGraphicsPath frame = gc.CreatePath();
+        frame.MoveToPoint(5.0, 5.0);
+        frame.AddLineToPoint(19.0, 5.0);
+        frame.AddLineToPoint(19.0, 19.0);
+        frame.AddLineToPoint(5.0, 19.0);
+        frame.CloseSubpath();
+
+        gc.SetPen(MakeStrokePen(gc, color));
+        gc.SetBrush(*wxTRANSPARENT_BRUSH);
+        gc.StrokePath(frame);
+
+        // 内部写「1」：一条竖线加一个小旗
+        wxGraphicsPath digit = gc.CreatePath();
+        digit.MoveToPoint(10.0, 9.0);
+        digit.AddLineToPoint(12.0, 8.0);
+        digit.AddLineToPoint(12.0, 16.0);
+        gc.SetPen(MakeStrokePen(gc, color, kDetailWidth));
+        gc.StrokePath(digit);
+    }
+
     /// 绘制「逻辑探针」图标：小三角 + 尾部短线。
     /// @param gc 目标绘图上下文
     /// @param color 线条颜色
@@ -650,11 +703,8 @@ wxBitmap IconFactory::RenderIcon(IconId id, int size, const wxColour& color, boo
         case IconId::TextLabel:
             DrawTextLabelIcon(*gc, color);
             break;
-        case IconId::Vcc:
-            DrawVccIcon(*gc, color);
-            break;
-        case IconId::Gnd:
-            DrawGndIcon(*gc, color);
+        case IconId::LevelSource:
+            DrawLevelSourceIcon(*gc, color);
             break;
         case IconId::Clock:
             DrawClockIcon(*gc, color);
@@ -668,17 +718,14 @@ wxBitmap IconFactory::RenderIcon(IconId id, int size, const wxColour& color, boo
         case IconId::TriState:
             DrawTriStateIcon(*gc, color);
             break;
-        case IconId::DFlipFlop:
-            DrawDFlipFlopIcon(*gc, color);
-            break;
-        case IconId::RsLatch:
-            DrawRsLatchIcon(*gc, color);
-            break;
         case IconId::Led:
             DrawLedIcon(*gc, color);
             break;
         case IconId::Probe:
             DrawProbeIcon(*gc, color);
+            break;
+        case IconId::Note:
+            DrawNoteIcon(*gc, color);
             break;
         default:
             break;

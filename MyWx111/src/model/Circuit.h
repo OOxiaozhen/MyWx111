@@ -12,6 +12,16 @@
 #include "Component.h"
 #include "Wire.h"
 
+/// 画布文本注释。不是元件：不参与网表导出、封装映射与连通性计算，
+/// 也不进 m_components，从而与元件/连线的命中、框选、序列化路径彻底隔离。
+struct Note
+{
+    int id = -1;      ///< 注释唯一 id（与元件/连线 id 计数器独立）
+    wxPoint position; ///< 包围盒左上角，世界坐标
+    wxString text;    ///< 注释正文，可含 '\n' 多行
+    wxSize size;      ///< 世界坐标包围盒尺寸，由 MeasureNoteSize 在插入/改文本时刷新
+};
+
 /// 电路文档模型：独占持有全部元件与连线，并维护选中集合与引脚占用索引。
 /// 任何结构性修改后都会调用 NotifyChanged()，由外部（MainFrame）驱动重绘与面板刷新。
 class Circuit
@@ -195,6 +205,12 @@ public:
     /// @return 发生了切换返回 true；非 InputPin 元件或不存在时返回 false
     bool ToggleInputLevel(int componentId);
 
+    /// 若世界坐标落在某个带电平元件的切换圆圈内，则翻转其电平并触发结构变更。
+    /// 输入引脚与电平源共用这一入口，画布只需调一次即可，不必逐个判断类型。
+    /// @param worldPt 世界坐标点
+    /// @return 发生了切换返回 true；未命中圆圈、或元件不支持切换时返回 false
+    bool ToggleLevelByCircle(const wxPoint& worldPt);
+
     /// 设置输入引脚电平（触发结构变更通知，因此可撤销）。
     /// @param componentId 元件 id
     /// @param level       新电平
@@ -227,11 +243,74 @@ public:
     /// @param text        新文本
     void SetComponentText(int componentId, const wxString& text);
 
+    /// 设置电平源元件的输出电平（触发结构变更通知，因此可撤销）。
+    /// @param componentId 元件 id
+    /// @param level       目标电平，仅 High / Low
+    void SetComponentSourceLevel(int componentId, LogicLevel level);
+
+    /// @param componentId 元件 id
+    /// @return 该元件的输出电平；非电平源或无此元件时返回 Unknown
+    LogicLevel GetComponentSourceLevel(int componentId) const;
+
     /// 把全部选中元件顺时针旋转 90 度。
     void RotateSelected();
 
     /// 删除全部选中元件（连带它们的连线）。
     void DeleteSelected();
+
+    // ── 画布注释（不是元件，与元件/连线隔离）──
+    /// 在指定世界坐标插入空注释。
+    /// @param worldPos 注释左上角世界坐标
+    /// @param text     初始文本，默认空
+    /// @return 新注释 id
+    int AddNote(const wxPoint& worldPos, const wxString& text = wxString());
+
+    /// 删除指定注释。
+    /// @param id 注释 id
+    /// @return 命中并删除返回 true
+    bool RemoveNote(int id);
+
+    /// 修改注释文本并刷新包围盒，触发结构变更通知（可撤销）。
+    /// @param id   注释 id
+    /// @param text 新文本（可为多行）
+    void SetNoteText(int id, const wxString& text);
+
+    /// 拖动过程中静默移动注释，不触发通知（由 EndDrag 统一提交一次）。
+    /// @param id       注释 id
+    /// @param worldPos 新左上角世界坐标
+    void SetNotePositionSilent(int id, const wxPoint& worldPos);
+
+    /// @return 全部注释（只读）
+    const std::vector<Note>& GetNotes() const { return m_notes; }
+
+    /// @param id 注释 id
+    /// @return 找到返回指针，否则 nullptr
+    Note* FindNote(int id);
+
+    /// @param id 注释 id
+    /// @return 找到返回指针，否则 nullptr
+    const Note* FindNote(int id) const;
+
+    /// 按包围盒逆序命中注释（后插入的在上层）。
+    /// @param worldPt 世界坐标点
+    /// @return 命中的注释，未命中返回 nullptr
+    Note* HitTestNote(const wxPoint& worldPt) const;
+
+    /// 仅选中该注释，并清空元件/连线的选中态。
+    /// @param id 注释 id
+    void SelectOnlyNote(int id);
+
+    /// @param id 注释 id
+    /// @return 该注释是否处于选中态
+    bool IsNoteSelected(int id) const { return m_selectedNoteId == id; }
+
+    /// @return 当前选中的注释 id，未选中返回 -1
+    int GetSelectedNoteId() const { return m_selectedNoteId; }
+
+    /// 测量注释正文在 zoom=1 下的尺寸，作为世界坐标包围盒。
+    /// @param text 注释正文
+    /// @return 含内边距的包围盒尺寸（世界单位）
+    static wxSize MeasureNoteSize(const wxString& text);
 
     // ── 物理芯片分组（gEDA 网表 / pcb 布局导出用）──
     /// 一片物理芯片的聚合信息。
@@ -334,6 +413,9 @@ private:
     std::vector<std::unique_ptr<Wire>> m_wires;           ///< 连线容器（独占所有权）
     std::vector<int> m_selection;                         ///< 选中元件 id 集合
     std::vector<int> m_selectedWires;                     ///< 选中连线 id 集合
+    std::vector<Note> m_notes;                            ///< 全部注释，绘制在元件与连线之上
+    int m_nextNoteId = 1;                                 ///< 注释 id 计数器，按既有约定不因 Clear() 重置
+    int m_selectedNoteId = -1;                            ///< 当前选中的注释 id，-1 表示无
     std::map<std::pair<int, int>, int> m_pinToWire;       ///< (元件 id, 引脚序号) → 连线 id
     int m_nextComponentId = 1;                            ///< 下一个可用元件 id
     int m_nextWireId = 1;                                 ///< 下一个可用连线 id

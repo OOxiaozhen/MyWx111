@@ -5,6 +5,9 @@
 #include <cstdlib>
 #include <set>
 
+#include <wx/dcscreen.h>
+#include <wx/font.h>
+
 #include "GateComponents.h"
 
 // ───────────────────────── 元件管理 ─────────────────────────
@@ -45,6 +48,10 @@ void Circuit::Clear()
     m_selection.clear();
     m_selectedWires.clear();
     m_pinToWire.clear();
+
+    // 注释与元件/连线无关，但属于文档内容，同样要清空
+    m_notes.clear();
+    m_selectedNoteId = -1;
 
     NotifyChanged();
     NotifyStructureChanged();
@@ -348,9 +355,10 @@ void Circuit::SelectOnlyWire(int wireId)
         return;
     }
 
-    // 元件与连线两类选中互斥：选中连线时清掉元件选中，避免属性面板显示上一个元件
+    // 元件、连线、注释三类选中互斥：选中连线时清掉另外两类
     m_selection.clear();
     m_selectedWires.clear();
+    m_selectedNoteId = -1;
     m_selectedWires.push_back(wireId);
     NotifyChanged();
 }
@@ -378,12 +386,13 @@ void Circuit::ToggleWireSelect(int wireId)
 
 void Circuit::ClearSelection()
 {
-    if (m_selection.empty() && m_selectedWires.empty())
+    if (m_selection.empty() && m_selectedWires.empty() && m_selectedNoteId < 0)
     {
         return;
     }
     m_selection.clear();
     m_selectedWires.clear();
+    m_selectedNoteId = -1;
     NotifyChanged();
 }
 
@@ -395,6 +404,7 @@ void Circuit::SelectOnly(int componentId)
     }
     m_selection.clear();
     m_selection.push_back(componentId);
+    m_selectedNoteId = -1;
     NotifyChanged();
 }
 
@@ -573,6 +583,50 @@ bool Circuit::ToggleInputLevel(int componentId)
     return true;
 }
 
+bool Circuit::ToggleLevelByCircle(const wxPoint& worldPt)
+{
+    // 半径取本体边长的 1/4：既能可靠点中，又不会吃掉方框四角的选中热区
+    constexpr int kToggleRadius = kComponentBodySize / 4;
+
+    for (const auto& compPtr : m_components)
+    {
+        if (!compPtr || !compPtr->HasLevelToggle())
+        {
+            continue;
+        }
+
+        // 本体包围盒宽高相等且旋转不变（见 Component::GetWorldBounds 的说明），
+        // 因此直接用世界包围盒中心作为圆心，无需再套一层朝向变换
+        const wxRect bounds = compPtr->GetWorldBounds();
+        const wxPoint center(bounds.x + bounds.width / 2, bounds.y + bounds.height / 2);
+        const wxPoint delta = worldPt - center;
+        if (delta.x * delta.x + delta.y * delta.y > kToggleRadius * kToggleRadius)
+        {
+            continue;
+        }
+
+        const int componentId = compPtr->GetId();
+        switch (compPtr->GetType())
+        {
+        case ComponentType::InputPin:
+            ToggleInputLevel(componentId);
+            return true;
+        case ComponentType::LevelSource:
+        {
+            const auto* source = static_cast<const LevelSource*>(compPtr.get());
+            SetComponentSourceLevel(
+                componentId,
+                source->GetLevel() == LogicLevel::High ? LogicLevel::Low : LogicLevel::High);
+            return true;
+        }
+        default:
+            break;
+        }
+    }
+
+    return false;
+}
+
 void Circuit::SetComponentInputLevel(int componentId, LogicLevel level)
 {
     Component* comp = FindComponent(componentId);
@@ -674,6 +728,34 @@ void Circuit::SetComponentText(int componentId, const wxString& text)
     label->SetText(text);
     NotifyChanged();
     NotifyStructureChanged();
+}
+
+void Circuit::SetComponentSourceLevel(int componentId, LogicLevel level)
+{
+    Component* comp = FindComponent(componentId);
+    if (!comp || comp->GetType() != ComponentType::LevelSource)
+    {
+        return;
+    }
+
+    auto* source = static_cast<LevelSource*>(comp);
+    if (source->GetLevel() == level)
+    {
+        return;
+    }
+    source->SetLevel(level);
+    NotifyChanged();
+    NotifyStructureChanged();
+}
+
+LogicLevel Circuit::GetComponentSourceLevel(int componentId) const
+{
+    const Component* comp = FindComponent(componentId);
+    if (!comp || comp->GetType() != ComponentType::LevelSource)
+    {
+        return LogicLevel::Unknown;
+    }
+    return static_cast<const LevelSource*>(comp)->GetLevel();
 }
 
 std::vector<Circuit::ChipGroup> Circuit::GetChipGroups() const
@@ -828,7 +910,7 @@ void Circuit::RotateSelected()
 
 void Circuit::DeleteSelected()
 {
-    if (m_selection.empty() && m_selectedWires.empty())
+    if (m_selection.empty() && m_selectedWires.empty() && m_selectedNoteId < 0)
     {
         return;
     }
@@ -841,6 +923,16 @@ void Circuit::DeleteSelected()
         RemoveWireInternal(id);
     }
     m_selectedWires.clear();
+
+    // 再删除选中的注释：注释不依附元件，单独处理
+    if (m_selectedNoteId >= 0)
+    {
+        const int noteId = m_selectedNoteId;
+        m_selectedNoteId = -1;
+        m_notes.erase(std::remove_if(m_notes.begin(), m_notes.end(),
+                                     [noteId](const Note& note) { return note.id == noteId; }),
+                      m_notes.end());
+    }
 
     // 先复制一份 id：下面会清空 m_selection，且删除过程中不能依赖它的内容
     const std::vector<int> ids = m_selection;
@@ -862,6 +954,161 @@ void Circuit::DeleteSelected()
     m_selection.clear();
     NotifyChanged();
     NotifyStructureChanged();
+}
+
+// ───────────────────────── 画布注释 ─────────────────────────
+
+int Circuit::AddNote(const wxPoint& worldPos, const wxString& text)
+{
+    Note note;
+    note.id = m_nextNoteId++;
+    note.position = worldPos;
+    note.text = text;
+    note.size = MeasureNoteSize(text);
+
+    m_notes.push_back(note);
+    NotifyChanged();
+    NotifyStructureChanged();
+    return note.id;
+}
+
+bool Circuit::RemoveNote(int id)
+{
+    const auto it = std::find_if(m_notes.begin(), m_notes.end(),
+                                 [id](const Note& note) { return note.id == id; });
+    if (it == m_notes.end())
+    {
+        return false;
+    }
+
+    m_notes.erase(it);
+    if (m_selectedNoteId == id)
+    {
+        m_selectedNoteId = -1;
+    }
+
+    NotifyChanged();
+    NotifyStructureChanged();
+    return true;
+}
+
+void Circuit::SetNoteText(int id, const wxString& text)
+{
+    Note* note = FindNote(id);
+    if (note == nullptr || note->text == text)
+    {
+        return;
+    }
+
+    note->text = text;
+    // 文本变化会改变包围盒，必须同步刷新，否则命中区域与显示不符
+    note->size = MeasureNoteSize(text);
+
+    NotifyChanged();
+    NotifyStructureChanged();
+}
+
+void Circuit::SetNotePositionSilent(int id, const wxPoint& worldPos)
+{
+    if (Note* note = FindNote(id))
+    {
+        note->position = worldPos;
+    }
+}
+
+Note* Circuit::FindNote(int id)
+{
+    for (Note& note : m_notes)
+    {
+        if (note.id == id)
+        {
+            return &note;
+        }
+    }
+    return nullptr;
+}
+
+const Note* Circuit::FindNote(int id) const
+{
+    for (const Note& note : m_notes)
+    {
+        if (note.id == id)
+        {
+            return &note;
+        }
+    }
+    return nullptr;
+}
+
+Note* Circuit::HitTestNote(const wxPoint& worldPt) const
+{
+    // 逆序：后插入的注释绘制在上层，命中测试也应优先命中它
+    for (auto it = m_notes.rbegin(); it != m_notes.rend(); ++it)
+    {
+        if (wxRect(it->position, it->size).Contains(worldPt))
+        {
+            return const_cast<Note*>(&(*it));
+        }
+    }
+    return nullptr;
+}
+
+void Circuit::SelectOnlyNote(int id)
+{
+    if (FindNote(id) == nullptr)
+    {
+        return;
+    }
+
+    // 三类选中互斥：选中注释时清掉元件与连线，避免多处同时高亮
+    m_selection.clear();
+    m_selectedWires.clear();
+    m_selectedNoteId = id;
+    NotifyChanged();
+}
+
+wxSize Circuit::MeasureNoteSize(const wxString& text)
+{
+    // 注释在世界坐标里排版：zoom=1 时 1 世界单位 = 1 像素，
+    // 因此直接用屏幕 DC 的字体度量结果作为世界单位尺寸
+    constexpr int kPadding = 8;
+    constexpr int kMinWidth = 40;
+    constexpr int kMinHeight = 20;
+
+    wxFont font(wxFontInfo(10));
+    wxScreenDC dc;
+    dc.SetFont(font);
+
+    const wxString content = text.empty() ? wxString(L"(空注释)") : text;
+
+    int lineHeight = 0;
+    dc.GetTextExtent(wxString(L"Hg"), &lineHeight, &lineHeight);
+
+    int maxWidth = 0;
+    int lineCount = 0;
+    wxString remaining = content;
+    while (true)
+    {
+        const int newlinePos = remaining.Find(L'\n');
+        const wxString line = (newlinePos == wxNOT_FOUND) ? remaining : remaining.Left(newlinePos);
+
+        int lineWidth = 0;
+        int unusedHeight = 0;
+        dc.GetTextExtent(line, &lineWidth, &unusedHeight);
+        maxWidth = std::max(maxWidth, lineWidth);
+        ++lineCount;
+
+        if (newlinePos == wxNOT_FOUND)
+        {
+            break;
+        }
+        remaining = remaining.Mid(static_cast<size_t>(newlinePos) + 1);
+    }
+
+    // 行高留 2 像素行距，整体高度另加一份内边距
+    const int width = std::max(kMinWidth, maxWidth + kPadding * 2);
+    const int height = std::max(kMinHeight, lineCount * (lineHeight + 2) + kPadding);
+    return wxSize(width, height);
 }
 
 // ───────────────────────── 变更通知 ─────────────────────────

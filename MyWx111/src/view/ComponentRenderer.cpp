@@ -5,6 +5,7 @@
 #include <memory>
 
 #include "../model/Circuit.h"
+#include "../model/GateComponents.h"
 
 namespace
 {
@@ -110,6 +111,51 @@ void ComponentRenderer::DrawComponent(wxGraphicsContext& gc, const Component& co
     DrawBody(gc, comp, transform, penColour, fillColour);
     DrawInversionBubble(gc, geo, comp, transform, fillColour);
 
+    // 带电平的元件（输入引脚 / 电平源）在符号上画一个「可点击圆圈」，
+    // 圈内显示 1/0：点圈内切电平，点圈外仍是正常选中。
+    // 它与仿真开关无关——开关只控制连线是否按电平着色。
+    if (comp.HasLevelToggle())
+    {
+        LogicLevel toggleLevel = LogicLevel::Unknown;
+        if (comp.GetType() == ComponentType::LevelSource)
+        {
+            toggleLevel = static_cast<const LevelSource&>(comp).GetLevel();
+        }
+        else if (comp.GetType() == ComponentType::InputPin)
+        {
+            toggleLevel = static_cast<const InputPin&>(comp).GetLevel();
+        }
+
+        wxColour levelColour(120, 120, 120);
+        switch (toggleLevel)
+        {
+        case LogicLevel::High:
+            levelColour = wxColour(200, 60, 60);
+            break;
+        case LogicLevel::Low:
+            levelColour = wxColour(60, 110, 200);
+            break;
+        default:
+            break;
+        }
+
+        const wxPoint center = LocalToScreen(comp, comp.GetLevelToggleCenter(), transform);
+        // 半径随缩放变化，与符号本体保持同一比例
+        const double radius = (kComponentBodySize / 4) * transform.GetZoom();
+
+        // 白色底 + 电平色描边：无论本体填充深浅，圆圈与其中的数字都能看清
+        gc.SetPen(wxPen(levelColour, 2));
+        gc.SetBrush(wxBrush(wxColour(255, 255, 255)));
+        gc.DrawEllipse(center.x - radius, center.y - radius, radius * 2.0, radius * 2.0);
+
+        const wxString text(LogicLevelToDisplayChar(toggleLevel));
+        gc.SetFont(wxFont(wxFontInfo(10).Bold()), levelColour);
+        wxDouble textWidth = 0.0;
+        wxDouble textHeight = 0.0;
+        gc.GetTextExtent(text, &textWidth, &textHeight);
+        gc.DrawText(text, center.x - textWidth / 2.0, center.y - textHeight / 2.0);
+    }
+
     // 引脚：连线状态由 Circuit 侧维护，渲染器拿不到，因此这里不作为高亮依据
     const wxRect worldBounds = comp.GetWorldBounds();
     for (const Pin& pin : comp.GetTransformedPins())
@@ -117,13 +163,18 @@ void ComponentRenderer::DrawComponent(wxGraphicsContext& gc, const Component& co
         DrawPin(gc, comp.GetPosition() + pin.offset, worldBounds, transform, false);
     }
 
-    // 名称文字以 labelAnchor 为水平中心绘制在元件下方
-    const wxPoint labelPos = LocalToScreen(comp, geo.labelAnchor, transform);
-    gc.SetFont(wxFont(wxFontInfo(8)), penColour);
-    double textWidth = 0.0;
-    double textHeight = 0.0;
-    gc.GetTextExtent(comp.GetName(), &textWidth, &textHeight);
-    gc.DrawText(comp.GetName(), labelPos.x - textWidth / 2.0, labelPos.y);
+    // 元件下方的名称不再绘制：用户在属性面板维护的名称只作标识用途。
+    // 例外是 TextLabel —— 它的 DescribeSymbol 只填 labelAnchor、没有主体与引脚，
+    // 画布呈现完全依赖这段文字，若一并删除该元件将彻底不可见。
+    if (comp.GetType() == ComponentType::TextLabel)
+    {
+        const wxPoint labelPos = LocalToScreen(comp, geo.labelAnchor, transform);
+        gc.SetFont(wxFont(wxFontInfo(8)), penColour);
+        double textWidth = 0.0;
+        double textHeight = 0.0;
+        gc.GetTextExtent(comp.GetName(), &textWidth, &textHeight);
+        gc.DrawText(comp.GetName(), labelPos.x - textWidth / 2.0, labelPos.y);
+    }
 
     // 逻辑探针：在符号右上角直接写出当前电平，避免用户只能靠连线颜色反推
     if (highlightLevel && comp.GetType() == ComponentType::LogicProbe)
@@ -352,6 +403,83 @@ void ComponentRenderer::DrawSelectionRect(wxGraphicsContext& gc, const wxRect& w
     gc.SetBrush(wxBrush(wxColour(0, 120, 215, 40)));
     gc.DrawRectangle(topLeft.x, topLeft.y,
                      bottomRight.x - topLeft.x, bottomRight.y - topLeft.y);
+}
+
+void ComponentRenderer::DrawNotes(wxGraphicsContext& gc, const Circuit& circuit,
+                                  const GridTransform& transform) const
+{
+    const auto& notes = circuit.GetNotes();
+    if (notes.empty())
+    {
+        return;
+    }
+
+    // 字号随缩放同步变化，保证文字与注释框一起放大缩小
+    const double zoom = transform.GetZoom();
+    const int fontSize = std::max(6, static_cast<int>(std::lround(10.0 * zoom)));
+
+    for (const Note& note : notes)
+    {
+        const wxPoint topLeft = transform.WorldToScreen(note.position);
+        const wxPoint bottomRight =
+            transform.WorldToScreen(wxPoint(note.position.x + note.size.GetWidth(),
+                                            note.position.y + note.size.GetHeight()));
+
+        const bool selected = circuit.IsNoteSelected(note.id);
+
+        gc.SetBrush(wxBrush(wxColour(255, 250, 205, 200)));
+        if (selected)
+        {
+            gc.SetPen(wxPen(wxColour(0, 120, 215), 1, wxPENSTYLE_SHORT_DASH));
+        }
+        else
+        {
+            gc.SetPen(wxPen(wxColour(180, 170, 130), 1));
+        }
+        gc.DrawRectangle(topLeft.x, topLeft.y, bottomRight.x - topLeft.x,
+                         bottomRight.y - topLeft.y);
+
+        if (selected)
+        {
+            // 四角小方块作为「可拖动」的视觉提示
+            gc.SetPen(*wxTRANSPARENT_PEN);
+            gc.SetBrush(wxBrush(wxColour(0, 120, 215)));
+            const wxPoint corners[] = { topLeft, wxPoint(bottomRight.x, topLeft.y), bottomRight,
+                                        wxPoint(topLeft.x, bottomRight.y) };
+            for (const wxPoint& corner : corners)
+            {
+                gc.DrawRectangle(corner.x - 2.0, corner.y - 2.0, 4.0, 4.0);
+            }
+        }
+
+        // 正文按 '\n' 拆行逐行绘制；空注释画浅灰占位文字
+        const wxString content = note.text.empty() ? wxString(L"(空注释)") : note.text;
+        const wxColour textColour =
+            note.text.empty() ? wxColour(160, 160, 160) : wxColour(70, 70, 80);
+        gc.SetFont(wxFont(wxFontInfo(fontSize)), textColour);
+
+        // wxGraphicsContext 的文本度量出参是 wxDouble，不能用 int
+        wxDouble lineHeight = 0.0;
+        wxDouble dummyWidth = 0.0;
+        gc.GetTextExtent(wxString(L"Hg"), &dummyWidth, &lineHeight);
+
+        int y = topLeft.y + 4;
+        wxString remaining = content;
+        while (true)
+        {
+            const int newlinePos = remaining.Find(L'\n');
+            const wxString line =
+                (newlinePos == wxNOT_FOUND) ? remaining : remaining.Left(newlinePos);
+            gc.DrawText(line, topLeft.x + 4, y);
+            y += static_cast<int>(lineHeight) + 2;
+
+            if (newlinePos == wxNOT_FOUND)
+            {
+                break;
+            }
+            remaining = remaining.Mid(static_cast<size_t>(newlinePos) + 1);
+        }
+    }
 }
 
 void ComponentRenderer::DrawPendingWire(wxGraphicsContext& gc, const wxPoint& fromWorld,

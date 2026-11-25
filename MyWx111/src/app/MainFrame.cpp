@@ -77,6 +77,7 @@ MainFrame::MainFrame()
     // 因此只需在此按 id 集中绑定一次，不必为每个按钮单独写回调
     Bind(wxEVT_BUTTON, &MainFrame::OnSelectTool, this, ID_ToolSelect);
     Bind(wxEVT_BUTTON, &MainFrame::OnWireTool, this, ID_ToolWire);
+    Bind(wxEVT_BUTTON, &MainFrame::OnPlaceNoteTool, this, ID_ToolPlaceNote);
     Bind(wxEVT_BUTTON, &MainFrame::OnZoomIn, this, ID_ViewZoomIn);
     Bind(wxEVT_BUTTON, &MainFrame::OnZoomOut, this, ID_ViewZoomOut);
     Bind(wxEVT_BUTTON, &MainFrame::OnToggleGrid, this, ID_ViewToggleGrid);
@@ -154,6 +155,9 @@ void MainFrame::CreateMenuBar()
     // 仿真单独成一级菜单：「运行仿真」是状态开关，与纯视图操作语义不同
     m_simMenu = new wxMenu();
     m_simMenu->AppendCheckItem(ID_ViewSimulation, wxString(L"运行仿真(&S)\tF5"));
+    // 画布默认处于仿真状态，菜单勾选态必须与之保持一致，
+    // 否则首次取消勾选时会因状态错位而显得「点了没反应」
+    m_simMenu->Check(ID_ViewSimulation, true);
     m_simMenu->AppendSeparator();
     m_simMenu->Append(ID_SimulationEvaluateOnce, wxString(L"重新求值(&R)\tF6"));
 
@@ -194,6 +198,7 @@ void MainFrame::SetupToolBar()
     const ToolButtonSpec buttons[] = {
         { ID_ToolSelect, IconId::Select, L"选择工具", L"选择工具：单击选中，拖动移动，空白处拖拽框选" },
         { ID_ToolWire, IconId::Wire, L"连线工具", L"连线工具：从输出引脚拖到输入引脚" },
+        { ID_ToolPlaceNote, IconId::Note, L"文本注释", L"添加文本注释：点击画布放置并输入文字" },
         { ID_EditRotate, IconId::Rotate, L"旋转", L"顺时针旋转选中元件 (Ctrl+R)" },
         { ID_EditUndo, IconId::Undo, L"撤销", L"撤销上一步操作 (Ctrl+Z)" },
         { ID_EditRedo, IconId::Redo, L"重做", L"重做被撤销的操作 (Ctrl+Y)" },
@@ -394,6 +399,9 @@ void MainFrame::UpdateToolStatus()
         break;
     case ToolMode::Wire:
         text = wxString(L"连线模式：从输出引脚拖到输入引脚");
+        break;
+    case ToolMode::PlaceNote:
+        text = wxString(L"文本注释模式：点击画布放置注释并输入文字，按 Esc 退出");
         break;
     case ToolMode::Pan:
         text = wxString(L"平移模式：拖拽移动视图");
@@ -1263,6 +1271,22 @@ void MainFrame::OnWireTool(wxCommandEvent&)
         return;
     }
     m_canvas->SetToolMode(ToolMode::Wire);
+    if (m_palette)
+    {
+        m_palette->SetActiveType(ComponentType::AndGate, false);
+    }
+    UpdateToolStatus();
+}
+
+void MainFrame::OnPlaceNoteTool(wxCommandEvent&)
+{
+    if (!m_canvas)
+    {
+        return;
+    }
+
+    m_canvas->SetToolMode(ToolMode::PlaceNote);
+    // 注释不是元件，清掉调色板的待放置元件高亮以免误导
     if (m_palette)
     {
         m_palette->SetActiveType(ComponentType::AndGate, false);

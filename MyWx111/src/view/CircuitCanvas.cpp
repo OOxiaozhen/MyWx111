@@ -3,6 +3,8 @@
 #include <algorithm>
 #include <memory>
 
+#include <wx/textdlg.h>
+
 CircuitCanvas::CircuitCanvas(wxWindow* parent, Circuit& circuit)
     : wxScrolledWindow(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize,
                        wxBORDER_NONE | wxWANTS_CHARS)
@@ -24,6 +26,7 @@ CircuitCanvas::CircuitCanvas(wxWindow* parent, Circuit& circuit)
     Bind(wxEVT_SIZE, &CircuitCanvas::OnSize, this);
     Bind(wxEVT_LEFT_DOWN, &CircuitCanvas::OnLeftDown, this);
     Bind(wxEVT_LEFT_UP, &CircuitCanvas::OnLeftUp, this);
+    Bind(wxEVT_LEFT_DCLICK, &CircuitCanvas::OnLeftDClick, this);
     Bind(wxEVT_MOTION, &CircuitCanvas::OnMotion, this);
     Bind(wxEVT_MIDDLE_DOWN, &CircuitCanvas::OnMiddleDown, this);
     Bind(wxEVT_MIDDLE_UP, &CircuitCanvas::OnMiddleUp, this);
@@ -33,6 +36,12 @@ CircuitCanvas::CircuitCanvas(wxWindow* parent, Circuit& circuit)
     Bind(wxEVT_LEAVE_WINDOW, &CircuitCanvas::OnLeaveWindow, this);
 
     SetFocus();
+
+    // 默认即处于仿真状态：先求值一次，让首次绘制就有电平配色。
+    // 不能调 SetSimulationEnabled(true)，因为它有 m_simEnabled == enabled 的早退，
+    // 默认已为 true 时不会执行求值
+    m_simulator.InvalidateTopology();
+    m_simulator.Evaluate();
 }
 
 // ───────────────────────── 绘制 ─────────────────────────
@@ -105,6 +114,9 @@ void CircuitCanvas::OnPaint(wxPaintEvent&)
     {
         m_renderer.DrawSelectionRect(*gc, wxRect(m_rubberStartWorld, m_rubberEndWorld), m_transform);
     }
+
+    // 注释最后绘制：它浮在元件与连线之上，避免被符号迈住
+    m_renderer.DrawNotes(*gc, m_circuit, m_transform);
 }
 
 void CircuitCanvas::OnEraseBackground(wxEraseEvent&)
@@ -152,15 +164,16 @@ void CircuitCanvas::OnLeftDown(wxMouseEvent& event)
     {
     case ToolMode::Select:
     {
-        // 仿真模式下单击输入引脚直接切换高低电平；其余位置仍走原有选中/拖动逻辑
-        if (m_simEnabled)
+        // 优先判断电平切换圆圈：这是「点圈内改 0/1」的入口，
+        // 无论仿真开关是否开启都生效；未命中则继续走原有选中/拖动逻辑
+        if (m_circuit.ToggleLevelByCircle(world))
         {
-            const PinRef pin = m_circuit.HitTestPin(world);
-            if (pin.IsValid() && m_circuit.ToggleInputLevel(pin.componentId))
-            {
-                RefreshSimulation();
-                return;
-            }
+            // 即便当前未开启仿真，也先算一次，用户点完能立刻看到结果；
+            // 未开启时连线不按电平着色，但下游元件状态已是新的
+            m_simulator.InvalidateTopology();
+            m_simulator.Evaluate();
+            Refresh();
+            return;
         }
 
         Component* hit = m_circuit.HitTestComponent(world);
@@ -185,6 +198,15 @@ void CircuitCanvas::OnLeftDown(wxMouseEvent& event)
                     m_dragOrigin.emplace_back(id, comp->GetPosition());
                 }
             }
+            NotifySelectionChanged();
+        }
+        else if (Note* note = m_circuit.HitTestNote(world))
+        {
+            // 注释命中排在元件之后、连线之前：注释浮在上层且最需要被点选
+            m_circuit.SelectOnlyNote(note->id);
+            m_draggingNote = true;
+            m_dragNoteId = note->id;
+            m_noteDragOffset = world - note->position;
             NotifySelectionChanged();
         }
         else if (const int wireId = m_circuit.HitTestWire(world); wireId >= 0)
@@ -213,6 +235,26 @@ void CircuitCanvas::OnLeftDown(wxMouseEvent& event)
     case ToolMode::Place:
     {
         PlaceComponentAt(screenPt);
+        break;
+    }
+    case ToolMode::PlaceNote:
+    {
+        const wxPoint pos = m_transform.SnapToGrid(world);
+        const int noteId = m_circuit.AddNote(pos, wxString());
+
+        wxTextEntryDialog dialog(this, wxString(L"注释内容（可多行）"), wxString(L"新建注释"),
+                                 wxString(), wxTE_MULTILINE | wxOK | wxCANCEL);
+        if (dialog.ShowModal() == wxID_OK && !dialog.GetValue().empty())
+        {
+            m_circuit.SetNoteText(noteId, dialog.GetValue());
+        }
+        else
+        {
+            // 取消或留空：撤销这次创建，避免画布上留下看不见的空注释
+            m_circuit.RemoveNote(noteId);
+        }
+
+        Refresh();
         break;
     }
     case ToolMode::Wire:
@@ -294,6 +336,14 @@ void CircuitCanvas::OnMotion(wxMouseEvent& event)
         return;
     }
 
+    if (m_draggingNote)
+    {
+        // 拖动过程只改数据不发通知（避免面板每帧刷新），松手时由 EndDrag 统一提交
+        m_circuit.SetNotePositionSilent(m_dragNoteId, m_cursorWorld - m_noteDragOffset);
+        Refresh();
+        return;
+    }
+
     if (m_rubberBanding)
     {
         m_rubberEndWorld = m_cursorWorld;
@@ -335,10 +385,31 @@ void CircuitCanvas::OnLeftUp(wxMouseEvent& event)
         return;
     }
 
+    if (m_draggingNote)
+    {
+        // 注释拖动必须单独收尾：它刻意不置 m_dragging，
+        // 若在这里漏掉，松开后会继续跟随光标，且拖动不会进撤销栈
+        EndDrag();
+        return;
+    }
+
     if (m_dragging)
     {
         EndDrag();
     }
+}
+
+void CircuitCanvas::OnLeftDClick(wxMouseEvent& event)
+{
+    // 双击注释就地编辑文本；其余位置交给默认处理
+    const wxPoint world = m_transform.ScreenToWorld(event.GetPosition());
+    if (Note* note = m_circuit.HitTestNote(world))
+    {
+        EditNoteText(note->id);
+        return;
+    }
+
+    event.Skip();
 }
 
 void CircuitCanvas::OnMiddleDown(wxMouseEvent& event)
@@ -468,6 +539,17 @@ void CircuitCanvas::PlaceComponentAt(const wxPoint& screenPt)
 
 void CircuitCanvas::EndDrag()
 {
+    // 拖动注释：松手才提交一次结构变更，使这次移动可被撤销
+    if (m_draggingNote)
+    {
+        m_draggingNote = false;
+        m_dragNoteId = -1;
+        m_circuit.NotifyChanged();
+        m_circuit.NotifyStructureChanged();
+        Refresh();
+        return;
+    }
+
     m_dragging = false;
     m_dragOrigin.clear();
 
@@ -531,6 +613,26 @@ void CircuitCanvas::EndWire(const PinRef& toPin)
     Refresh();
 }
 
+void CircuitCanvas::EditNoteText(int noteId)
+{
+    const Note* note = m_circuit.FindNote(noteId);
+    if (note == nullptr)
+    {
+        return;
+    }
+
+    wxTextEntryDialog dialog(this, wxString(L"注释内容（可多行）"), wxString(L"编辑注释"),
+                             note->text, wxTE_MULTILINE | wxOK | wxCANCEL);
+    if (dialog.ShowModal() != wxID_OK)
+    {
+        // 取消时保持原文本不变
+        return;
+    }
+
+    m_circuit.SetNoteText(noteId, dialog.GetValue());
+    Refresh();
+}
+
 void CircuitCanvas::RefreshAndReport()
 {
     Refresh();
@@ -559,8 +661,22 @@ void CircuitCanvas::SetToolMode(ToolMode mode, ComponentType type)
     m_wireWaypoints.clear();
     m_panning = false;
     m_dragOrigin.clear();
+    m_draggingNote = false;
+    m_dragNoteId = -1;
 
-    SetCursor(wxCursor(mode == ToolMode::Pan ? wxCURSOR_HAND : wxCURSOR_ARROW));
+    if (mode == ToolMode::Pan)
+    {
+        SetCursor(wxCursor(wxCURSOR_HAND));
+    }
+    else if (mode == ToolMode::PlaceNote)
+    {
+        // 文本注释模式用 I 形光标，提示此处可输入文字
+        SetCursor(wxCursor(wxCURSOR_IBEAM));
+    }
+    else
+    {
+        SetCursor(wxCursor(wxCURSOR_ARROW));
+    }
     Refresh();
 }
 

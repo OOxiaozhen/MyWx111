@@ -20,7 +20,8 @@ namespace
     /// 因此一旦枚举顺序发生变化，必须提升该版本号，否则旧文件会把类型读错位。
     /// v2：新增 refdes / footprint / value / slot 四个物理芯片属性。
     /// v3：新增输入引脚电平、时钟频率与占空比（按类型写出）。
-    constexpr int kCurrentVersion = 3;
+    /// v4：新增电平源类型与画布注释（notes 数组）；枚举未位移，v1~v3 文件可原样读取。
+    constexpr int kCurrentVersion = 4;
 
     /// 文件格式标识，用于区分本工程的 JSON 与任意其它 JSON 文件。
     const wxString kFormatTag = wxString(L"MyWx111-Circuit");
@@ -53,6 +54,15 @@ namespace
         int toComponent = -1;          ///< 终点元件在文件中的 id
         int toPin = -1;                ///< 终点引脚序号
         std::vector<wxPoint> bends;    ///< 手动折点（世界坐标）
+    };
+
+    /// 解析过程中暂存的注释数据。
+    struct TempNote
+    {
+        int id = -1;   ///< 文件中的注释 id（读回时以重新分配为准）
+        int x = 0;     ///< 世界坐标 X
+        int y = 0;     ///< 世界坐标 Y
+        wxString text; ///< 注释正文（可含换行，已由 JSON 转义处理）
     };
 
     /// 最小 JSON 扫描器。
@@ -662,14 +672,111 @@ namespace
         }
     }
 
+    /// 解析 notes 数组。
+    /// @param reader JSON 扫描器
+    /// @param[out] notes 解析出的注释列表
+    /// @param[out] error 失败时的中文错误描述
+    /// @return 成功返回 true
+    bool ParseNotes(JsonReader& reader, std::vector<TempNote>& notes, wxString& error)
+    {
+        if (!reader.Consume(L'['))
+        {
+            error = wxString(L"工程文件格式错误：notes 不是数组");
+            return false;
+        }
+
+        while (true)
+        {
+            const wxUniChar next = reader.Peek();
+            if (next == L']')
+            {
+                reader.Consume(L']');
+                return true;
+            }
+            if (next == L'\0')
+            {
+                error = wxString(L"工程文件格式错误：notes 数组未闭合");
+                return false;
+            }
+            if (!reader.Consume(L'{'))
+            {
+                error = wxString(L"工程文件格式错误：notes 元素不是对象");
+                return false;
+            }
+
+            TempNote item;
+            while (true)
+            {
+                const wxUniChar ch = reader.Peek();
+                if (ch == L'}')
+                {
+                    reader.Consume(L'}');
+                    break;
+                }
+                if (ch == L'\0')
+                {
+                    error = wxString(L"工程文件格式错误：notes 元素未闭合");
+                    return false;
+                }
+
+                wxString key;
+                if (!reader.ReadString(key) || !reader.Consume(L':'))
+                {
+                    error = wxString(L"工程文件格式错误：notes 键无效");
+                    return false;
+                }
+
+                bool ok = true;
+                if (key == L"id")
+                {
+                    ok = reader.ReadInt(item.id);
+                }
+                else if (key == L"x")
+                {
+                    ok = reader.ReadInt(item.x);
+                }
+                else if (key == L"y")
+                {
+                    ok = reader.ReadInt(item.y);
+                }
+                else if (key == L"text")
+                {
+                    ok = reader.ReadString(item.text);
+                }
+                else
+                {
+                    ok = reader.SkipValue();
+                }
+
+                if (!ok)
+                {
+                    error = wxString(L"工程文件格式错误：notes 字段读取失败");
+                    return false;
+                }
+                if (reader.Peek() == L',')
+                {
+                    reader.Consume(L',');
+                }
+            }
+
+            notes.push_back(item);
+            if (reader.Peek() == L',')
+            {
+                reader.Consume(L',');
+            }
+        }
+    }
+
     /// 解析整个工程文档，并校验格式标识与版本。
     /// @param content 文件全文
     /// @param[out] comps 解析出的元件
     /// @param[out] wires 解析出的连线
+    /// @param[out] notes 解析出的注释；缺少 notes 键时保持空列表（旧文件兼容）
     /// @param[out] error 失败时的中文错误描述
     /// @return 成功返回 true
     bool ParseDocument(const wxString& content, std::vector<TempComponent>& comps,
-                       std::vector<TempWire>& wires, wxString& error)
+                       std::vector<TempWire>& wires, std::vector<TempNote>& notes,
+                       wxString& error)
     {
         JsonReader reader(content);
         if (!reader.Consume(L'{'))
@@ -730,6 +837,13 @@ namespace
             else if (key == L"wires")
             {
                 if (!ParseWires(reader, wires, error))
+                {
+                    return false;
+                }
+            }
+            else if (key == L"notes")
+            {
+                if (!ParseNotes(reader, notes, error))
                 {
                     return false;
                 }
@@ -798,10 +912,14 @@ bool SerializeCircuitToJson(const Circuit& circuit, wxString& out, wxString* err
         // 其他类型不产生这些键，避免无关字段把文件撑大；占空比存百分比整数，
         // 避开浮点在 JSON 中的表示差异。
         wxString extra;
-        if (comp.GetType() == ComponentType::InputPin)
+        if (comp.GetType() == ComponentType::InputPin ||
+            comp.GetType() == ComponentType::LevelSource)
         {
-            const auto* input = static_cast<const InputPin*>(&comp);
-            extra = wxString::Format(L", \"inputLevel\": %d", static_cast<int>(input->GetLevel()));
+            // 两种元件的「当前设定电平」语义相同，复用同一个键
+            const LogicLevel level = (comp.GetType() == ComponentType::InputPin)
+                                         ? static_cast<const InputPin*>(&comp)->GetLevel()
+                                         : static_cast<const LevelSource*>(&comp)->GetLevel();
+            extra = wxString::Format(L", \"inputLevel\": %d", static_cast<int>(level));
         }
         else if (comp.GetType() == ComponentType::ClockSource)
         {
@@ -848,6 +966,19 @@ bool SerializeCircuitToJson(const Circuit& circuit, wxString& out, wxString* err
         }
 
         out += wxString::Format(L"] }%s\n", (i + 1 == wires.size()) ? L"" : L",");
+    }
+    out += L"  ],\n";
+
+    // 注释不是元件，单独一个数组；缺该键的旧文件会在读取时回落到空列表
+    const auto& notes = circuit.GetNotes();
+    out += L"  \"notes\": [\n";
+    for (size_t i = 0; i < notes.size(); ++i)
+    {
+        const Note& note = notes[i];
+        out += wxString::Format(L"    { \"id\": %d, \"x\": %d, \"y\": %d, \"text\": \"%s\" }%s\n",
+                                note.id, note.position.x, note.position.y,
+                                EscapeJsonText(note.text),
+                                (i + 1 == notes.size()) ? L"" : L",");
     }
     out += L"  ]\n";
     out += L"}\n";
@@ -902,8 +1033,9 @@ bool DeserializeCircuitFromJson(Circuit& circuit, const wxString& json, wxString
 {
     std::vector<TempComponent> temps;
     std::vector<TempWire> tempWires;
+    std::vector<TempNote> tempNotes;
     wxString parseError;
-    if (!ParseDocument(json, temps, tempWires, parseError))
+    if (!ParseDocument(json, temps, tempWires, tempNotes, parseError))
     {
         // 解析未通过，此时完全没碰 circuit，原电路保持完好
         if (error != nullptr)
@@ -947,6 +1079,10 @@ bool DeserializeCircuitFromJson(Circuit& circuit, const wxString& json, wxString
         {
             static_cast<InputPin*>(comp)->SetLevel(static_cast<LogicLevel>(temp.inputLevel));
         }
+        else if (static_cast<ComponentType>(temp.type) == ComponentType::LevelSource)
+        {
+            static_cast<LevelSource*>(comp)->SetLevel(static_cast<LogicLevel>(temp.inputLevel));
+        }
         else if (static_cast<ComponentType>(temp.type) == ComponentType::ClockSource)
         {
             auto* clock = static_cast<ClockSource*>(comp);
@@ -974,6 +1110,12 @@ bool DeserializeCircuitFromJson(Circuit& circuit, const wxString& json, wxString
             warnings += wxString::Format(L"连线 %d.%d → %d.%d 不合法，已跳过\r\n",
                                          fromIt->second, temp.fromPin, toIt->second, temp.toPin);
         }
+    }
+
+    // 注释不引用元件 id，直接按解析结果重建；包围盒由 AddNote 内部重算
+    for (const TempNote& tempNote : tempNotes)
+    {
+        circuit.AddNote(wxPoint(tempNote.x, tempNote.y), tempNote.text);
     }
 
     circuit.NotifyChanged();

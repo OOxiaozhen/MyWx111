@@ -20,17 +20,15 @@ enum class IconId
     Rotate,  ///< 旋转：顺时针折线箭头
     Delete,  ///< 删除：叉号
     Paste,   ///< 粘贴：剪贴板与纸页
-    TextLabel,  ///< 文本标注：T 字
-    Vcc,        ///< 高电平：T 形
-    Gnd,        ///< 低电平：接地符号
-    Clock,      ///< 时钟：方波
-    Xnor,       ///< 同或门：或门形 + 反相圆
-    Buffer,     ///< 缓冲器：三角形
-    TriState,   ///< 三态门：三角 + 使能短线
-    DFlipFlop,  ///< D 触发器：矩形框
-    RsLatch,    ///< RS 锁存器：矩形框
-    Led,        ///< LED：圆 + 射线
-    Probe       ///< 逻辑探针：小三角
+    TextLabel,   ///< 文本标注：T 字
+    LevelSource, ///< 电平源：方框 + 内部 1/0
+    Clock,       ///< 时钟：方波
+    Xnor,        ///< 同或门：或门形 + 反相圆
+    Buffer,      ///< 缓冲器：三角形
+    TriState,    ///< 三态门：三角 + 使能短线
+    Led,         ///< LED：圆 + 射线
+    Probe,       ///< 逻辑探针：小三角
+    Note         ///< 文本注释：方框 + 三条横线
 };
 
 /// 图标工厂：集中提供全部界面图标的矢量绘制与缓存。

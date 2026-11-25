@@ -184,10 +184,12 @@ wxString GetComponentDisplayName(ComponentType type)
         return wxString(L"分线器");
     case ComponentType::TextLabel:
         return wxString(L"文本标注");
+    // 以下四个类型已废弃：分支保留只为满足穷举（旧文件加载时会被工厂拒绝），
+    // 名称前加标记，万一出现在旧文件属性面板中也能看出是废弃类型
     case ComponentType::VccSource:
-        return wxString(L"高电平 VCC");
+        return wxString(L"(已废弃) 高电平 VCC");
     case ComponentType::GndSource:
-        return wxString(L"低电平 GND");
+        return wxString(L"(已废弃) 低电平 GND");
     case ComponentType::ClockSource:
         return wxString(L"时钟源");
     case ComponentType::XnorGate:
@@ -197,13 +199,15 @@ wxString GetComponentDisplayName(ComponentType type)
     case ComponentType::TriStateGate:
         return wxString(L"三态门");
     case ComponentType::DFlipFlop:
-        return wxString(L"D 触发器");
+        return wxString(L"(已废弃) D 触发器");
     case ComponentType::RsLatch:
-        return wxString(L"RS 锁存器");
+        return wxString(L"(已废弃) RS 锁存器");
     case ComponentType::LedIndicator:
         return wxString(L"LED 指示灯");
     case ComponentType::LogicProbe:
         return wxString(L"逻辑探针");
+    case ComponentType::LevelSource:
+        return wxString(L"电平源");
     default:
         return wxString(L"未知元件");
     }
@@ -227,14 +231,16 @@ wxString GetComponentGroupName(ComponentType type)
     case ComponentType::Splitter:
         return wxString(L"接线");
 
+    // 已废弃类型与统一电平源同属「信号源」；「时序」分组已裁剪，不再存在
     case ComponentType::VccSource:
     case ComponentType::GndSource:
     case ComponentType::ClockSource:
+    case ComponentType::LevelSource:
         return wxString(L"信号源");
 
     case ComponentType::DFlipFlop:
     case ComponentType::RsLatch:
-        return wxString(L"时序");
+        return wxString(L"信号源");
 
     case ComponentType::LedIndicator:
     case ComponentType::LogicProbe:
@@ -260,7 +266,7 @@ wxString GetComponentGroupName(ComponentType type)
 std::vector<wxString> GetAllComponentGroups()
 {
     return { wxString(L"输入/输出"), wxString(L"逻辑门"), wxString(L"信号源"),
-             wxString(L"时序"), wxString(L"显示"), wxString(L"标注"), wxString(L"接线") };
+             wxString(L"显示"), wxString(L"标注"), wxString(L"接线") };
 }
 
 std::vector<ComponentType> GetComponentTypesInGroup(const wxString& groupName)
@@ -283,11 +289,8 @@ std::vector<ComponentType> GetComponentTypesInGroup(const wxString& groupName)
     }
     if (groupName == wxString(L"信号源"))
     {
-        return { ComponentType::VccSource, ComponentType::GndSource, ComponentType::ClockSource };
-    }
-    if (groupName == wxString(L"时序"))
-    {
-        return { ComponentType::DFlipFlop, ComponentType::RsLatch };
+        // 只有时钟源与统一电平源：VCC/GND 已合并进 LevelSource
+        return { ComponentType::ClockSource, ComponentType::LevelSource };
     }
     if (groupName == wxString(L"显示"))
     {
