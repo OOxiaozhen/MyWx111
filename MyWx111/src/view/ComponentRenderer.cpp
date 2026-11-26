@@ -406,6 +406,29 @@ void ComponentRenderer::DrawWire(wxGraphicsContext& gc, const Wire& wire, const 
     }
 }
 
+void ComponentRenderer::DrawJunctions(wxGraphicsContext& gc, const Circuit& circuit,
+                                      const GridTransform& transform) const
+{
+    const std::vector<Circuit::Junction> junctions = circuit.ComputeJunctions();
+    if (junctions.empty())
+    {
+        return;
+    }
+
+    gc.SetPen(*wxTRANSPARENT_PEN);
+    gc.SetBrush(wxBrush(wxColour(70, 70, 80)));
+
+    for (const Circuit::Junction& junction : junctions)
+    {
+        const wxPoint center = transform.WorldToScreen(junction.position);
+
+        // 引脚扇出点与引脚端点圆点重合，画大一点才能与普通引脚点区分；
+        // 普通 T 形 / 十字交汇点略小，避免在密集走线处糊成一片
+        const double radius = junction.atPinFanout ? 4.0 : 3.0;
+        gc.DrawEllipse(center.x - radius, center.y - radius, radius * 2.0, radius * 2.0);
+    }
+}
+
 void ComponentRenderer::DrawSelectionRect(wxGraphicsContext& gc, const wxRect& worldRect,
                                           const GridTransform& transform) const
 {

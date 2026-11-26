@@ -49,6 +49,15 @@ public:
                   const GridTransform& transform, bool selected,
                   LogicLevel level = LogicLevel::Unknown, bool highlightLevel = false) const;
 
+    /// 绘制全部分叉圆点（junction）：多条连线在同一世界坐标汇聚处的实心圆点。
+    /// 仅作视觉提示，不参与连通性；圆点半径固定为屏幕像素，
+    /// 避免放大后盖住引脚符号或缩小时彻底消失。
+    /// @param gc 图形上下文
+    /// @param circuit 电路模型（内部调用 ComputeJunctions 取当前分叉点）
+    /// @param transform 坐标变换
+    void DrawJunctions(wxGraphicsContext& gc, const Circuit& circuit,
+                       const GridTransform& transform) const;
+
     /// 绘制框选矩形（虚线 + 半透明填充）。
     /// @param gc 图形上下文
     /// @param worldRect 世界坐标下的矩形

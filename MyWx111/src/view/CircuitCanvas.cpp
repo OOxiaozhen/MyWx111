@@ -81,6 +81,10 @@ void CircuitCanvas::OnPaint(wxPaintEvent&)
                                          : LogicLevel::Unknown,
                             m_simEnabled);
     }
+    // 分叉圆点夹在连线与元件之间：压在连线接合处之上，但会被引脚端点覆盖，
+    // 与 KiCad 的层次一致。仅在存在分叉时内部才会真正落笔
+    m_renderer.DrawJunctions(*gc, m_circuit, m_transform);
+
     for (const auto& comp : m_circuit.GetComponents())
     {
         // 仿真开启时取该元件首个引脚所在网络电平，供 LED / 逻辑探针着色与显示文字；
@@ -262,16 +266,40 @@ void CircuitCanvas::OnLeftDown(wxMouseEvent& event)
         if (!m_wiring)
         {
             const PinRef pin = m_circuit.HitTestPin(world);
-            if (pin.IsValid())
+            if (!pin.IsValid())
             {
-                m_wiring = true;
-                m_wireFrom = pin;
-                m_wireCursorWorld = world;
-                m_wireWaypoints.clear();
+                if (OnHint)
+                {
+                    OnHint(wxString(L"请点击引脚端点开始连线"));
+                }
+                break;
             }
-            else if (OnHint)
+
+            // 起点合法性与方向在这里就先校验：等走完整条线才在终点被判不合法，
+            // 用户会白白点了一串折点
+            wxString startError;
+            if (!m_circuit.CanStartWire(pin, &startError))
             {
-                OnHint(wxString(L"请点击引脚端点开始连线"));
+                if (OnHint)
+                {
+                    OnHint(startError);
+                }
+                break;
+            }
+
+            m_wiring = true;
+            m_wireFrom = pin;
+            m_wireCursorWorld = world;
+            m_wireWaypoints.clear();
+
+            // 输出引脚允许扇出：已有连线时告知用户本次是新增一条分支而非改接，
+            // 免得用户以为旧线被抢走了
+            const int fanout = static_cast<int>(
+                m_circuit.GetWiresForPin(pin.componentId, pin.pinIndex).size());
+            if (OnHint && fanout > 0)
+            {
+                OnHint(wxString::Format(
+                    L"该输出引脚已有 %d 条连线，继续走线将新增一条扇出分支", fanout));
             }
         }
         else
@@ -605,7 +633,12 @@ void CircuitCanvas::EndWire(const PinRef& toPin)
     m_simulator.InvalidateTopology();
     if (OnHint)
     {
-        OnHint(wxString(L"连线已创建"));
+        // 扇出后回报该输出引脚当前的连线总数，让用户确认分支确实加上了
+        const int fanout = static_cast<int>(
+            m_circuit.GetWiresForPin(m_wireFrom.componentId, m_wireFrom.pinIndex).size());
+        OnHint(fanout > 1
+                   ? wxString::Format(L"连线已创建，该输出引脚现有 %d 条扇出连线", fanout)
+                   : wxString(L"连线已创建"));
     }
 
     m_wiring = false;

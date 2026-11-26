@@ -115,9 +115,10 @@ Wire* Circuit::AddWire(const PinRef& from, const PinRef& to,
     }
 
     // 引脚占用状态集中保存在 Circuit 侧：Pin 是 BuildPins() 返回的值对象，
-    // 不会持有在元件内部，因此占用关系必须由模型统一登记
-    m_pinToWire[{ from.componentId, from.pinIndex }] = newId;
-    m_pinToWire[{ to.componentId, to.pinIndex }] = newId;
+    // 不会持有在元件内部，因此占用关系必须由模型统一登记。
+    // 用 insert 而非 operator[]：multimap 下一个输出引脚可挂多条连线（扇出）
+    m_pinToWire.insert({ { from.componentId, from.pinIndex }, newId });
+    m_pinToWire.insert({ { to.componentId, to.pinIndex }, newId });
 
     NotifyChanged();
     NotifyStructureChanged();
@@ -147,10 +148,77 @@ bool Circuit::RemoveWireInternal(int wireId)
     const PinRef from = (*it)->GetFrom();
     const PinRef to = (*it)->GetTo();
 
-    m_pinToWire.erase({ from.componentId, from.pinIndex });
-    m_pinToWire.erase({ to.componentId, to.pinIndex });
+    // multimap 下同一个键可能对应多条连线（输出扇出），
+    // 必须只删除当前这条 wireId，不能把该引脚的所有连线一并抹掉
+    const auto eraseOne = [this, wireId](const PinRef& pin)
+    {
+        const auto range = m_pinToWire.equal_range({ pin.componentId, pin.pinIndex });
+        for (auto entry = range.first; entry != range.second; ++entry)
+        {
+            if (entry->second == wireId)
+            {
+                m_pinToWire.erase(entry);
+                return;
+            }
+        }
+    };
+    eraseOne(from);
+    eraseOne(to);
 
     m_wires.erase(it);
+    return true;
+}
+
+bool Circuit::HasWireBetween(const PinRef& a, const PinRef& b) const
+{
+    const auto samePair = [&a, &b](const std::unique_ptr<Wire>& wire)
+    {
+        const PinRef& from = wire->GetFrom();
+        const PinRef& to = wire->GetTo();
+        // 方向不限：同一对引脚无论谁作起点都算同一根连线
+        return (from == a && to == b) || (from == b && to == a);
+    };
+
+    return std::find_if(m_wires.begin(), m_wires.end(), samePair) != m_wires.end();
+}
+
+bool Circuit::CanStartWire(const PinRef& from, wxString* errorMsg) const
+{
+    const auto fail = [errorMsg](const wxString& text)
+    {
+        if (errorMsg)
+        {
+            *errorMsg = text;
+        }
+        return false;
+    };
+
+    if (!from.IsValid())
+    {
+        return fail(wxString(L"引脚引用无效"));
+    }
+
+    const Component* fromComp = FindComponent(from.componentId);
+    if (!fromComp)
+    {
+        return fail(wxString(L"引脚所属元件不存在"));
+    }
+
+    const std::vector<Pin> fromPins = fromComp->GetTransformedPins();
+    if (from.pinIndex < 0 || from.pinIndex >= static_cast<int>(fromPins.size()))
+    {
+        return fail(wxString(L"引脚序号越界"));
+    }
+
+    // 输出与双向引脚才能驱动连线；输入引脚只能当终点。
+    // 在起点按下时就拦住，避免用户辛苦走完整条折线才被告知起点不合法；
+    // 输出引脚已挂多条线属于正常扇出，这里刻意不判占用。
+    const PinDirection dir = fromPins[static_cast<size_t>(from.pinIndex)].direction;
+    if (dir != PinDirection::Output && dir != PinDirection::Bidi)
+    {
+        return fail(wxString(L"请从输出引脚开始连线"));
+    }
+
     return true;
 }
 
@@ -205,10 +273,17 @@ bool Circuit::CanConnect(const PinRef& from, const PinRef& to, wxString* errorMs
         return fail(wxString(L"连线终点必须是输入引脚"));
     }
 
-    if (m_pinToWire.count({ from.componentId, from.pinIndex }) != 0 ||
-        m_pinToWire.count({ to.componentId, to.pinIndex }) != 0)
+    // 扇出规则：输出引脚允许挂多条连线（一个输出驱动多个输入），
+    // 因此起点不判占用；输入引脚仍只允许一个驱动源，避免多驱动争主。
+    if (m_pinToWire.count({ to.componentId, to.pinIndex }) != 0)
     {
-        return fail(wxString(L"该引脚已被其他连线占用"));
+        return fail(wxString(L"该输入引脚已被其他连线占用"));
+    }
+
+    // 扇出后容易把同一对引脚反复连两次，结果只是两根完全重合的线，需去重
+    if (HasWireBetween(from, to))
+    {
+        return fail(wxString(L"这两个引脚之间已经存在连线"));
     }
 
     return true;
@@ -236,10 +311,191 @@ void Circuit::PopulatePinStates(int componentId, std::vector<Pin>& pins) const
 {
     for (Pin& pin : pins)
     {
-        const auto it = m_pinToWire.find({ componentId, pin.index });
-        pin.connected = (it != m_pinToWire.end());
-        pin.wireId = pin.connected ? it->second : -1;
+        const auto range = m_pinToWire.equal_range({ componentId, pin.index });
+        pin.connected = (range.first != range.second);
+        // 扇出时一个引脚对应多条连线，Pin 只能记录首条；
+        // 需要完整列表的调用方应使用 GetWiresForPin
+        pin.wireId = pin.connected ? range.first->second : -1;
     }
+}
+
+std::vector<int> Circuit::GetWiresForPin(int componentId, int pinIndex) const
+{
+    const auto range = m_pinToWire.equal_range({ componentId, pinIndex });
+    std::vector<int> wireIds;
+    for (auto entry = range.first; entry != range.second; ++entry)
+    {
+        wireIds.push_back(entry->second);
+    }
+    return wireIds;
+}
+
+// ───────────────────────── 分叉圆点（junction）─────────────────────────
+
+namespace
+{
+    /// wxPoint 的严格弱序，供 std::map 当键使用（wxPoint 没有 operator<）。
+    /// 用 map 而非 unordered_map 是为了让 ComputeJunctions 的输出顺序稳定，
+    /// 避免同一张图每次重绘得到不同的圆点顺序（缓存比对与调试都依赖确定性）。
+    struct JunctionPointLess
+    {
+        bool operator()(const wxPoint& a, const wxPoint& b) const
+        {
+            return a.x != b.x ? a.x < b.x : a.y < b.y;
+        }
+    };
+
+    /// 判断点是否严格落在一条线段的内部（不含两端点）。
+    /// 本项目的走线被强制为正交折线，因此只按同列 / 同行两种情形比较坐标区间，
+    /// 斜线段直接返回 false：与其做通用几何判定，不如让斜线漏判，
+    /// 因为斜线在本工程里本就代表走线算法出错，无圆点反而更容易被发现。
+    /// @param pt 待判定的世界坐标点
+    /// @param a  线段起点
+    /// @param b  线段终点
+    /// @return 点位于线段内部（严格在两端之间）时返回 true
+    bool IsPointInsideSegment(const wxPoint& pt, const wxPoint& a, const wxPoint& b)
+    {
+        if (a == b)
+        {
+            return false; // 退化线段没有内部
+        }
+
+        if (a.y == b.y)
+        {
+            const int minX = std::min(a.x, b.x);
+            const int maxX = std::max(a.x, b.x);
+            return pt.y == a.y && pt.x > minX && pt.x < maxX;
+        }
+
+        if (a.x == b.x)
+        {
+            const int minY = std::min(a.y, b.y);
+            const int maxY = std::max(a.y, b.y);
+            return pt.x == a.x && pt.y > minY && pt.y < maxY;
+        }
+
+        return false; // 斜线段不参与 junction 判定
+    }
+}
+
+std::vector<Circuit::Junction> Circuit::ComputeJunctions() const
+{
+    // 先把所有连线的正交路径取出来，后续判定全部在几何层完成，不再回查模型
+    struct WirePath
+    {
+        int id = -1;                    ///< 连线 id
+        std::vector<wxPoint> points;    ///< 该连线的完整折线路径（世界坐标）
+    };
+
+    std::vector<WirePath> paths;
+    paths.reserve(m_wires.size());
+    for (const auto& wire : m_wires)
+    {
+        std::vector<wxPoint> points = GetWirePath(*wire);
+        if (points.size() < 2)
+        {
+            continue; // 端点失效（元件已删除）的连线不参与分叉统计
+        }
+        paths.push_back(WirePath{ wire->GetId(), std::move(points) });
+    }
+
+    // 交汇点 → 聚合信息
+    struct Meeting
+    {
+        std::vector<int> wireIds; ///< 交汇于该点的连线 id（去重）
+        int incidentEnds = 0;     ///< 汇入线段端点数：连线端点算 1，内部折点算 2
+        int endWireCount = 0;     ///< 以该点作为自身端点的连线数量，用于识别引脚扇出
+    };
+
+    std::map<wxPoint, Meeting, JunctionPointLess> meetings;
+
+    // 第一遍：登记每条连线自己的端点与折点
+    for (const WirePath& path : paths)
+    {
+        const wxPoint& first = path.points.front();
+        const wxPoint& last = path.points.back();
+
+        Meeting& head = meetings[first];
+        head.wireIds.push_back(path.id);
+        head.incidentEnds += 1;
+        head.endWireCount += 1;
+
+        if (!(last == first))
+        {
+            Meeting& tail = meetings[last];
+            tail.wireIds.push_back(path.id);
+            tail.incidentEnds += 1;
+            tail.endWireCount += 1;
+        }
+
+        // 内部折点：一条线在此拐弯，等效两条线段在此相接，故计 2
+        for (size_t i = 1; i + 1 < path.points.size(); ++i)
+        {
+            Meeting& inner = meetings[path.points[i]];
+            inner.wireIds.push_back(path.id);
+            inner.incidentEnds += 2;
+        }
+    }
+
+    // 第二遍：补上「T 形分叉」——另一条线的端点或折点落在本线段的内部，
+    // 而该点又不是本连线自己的顶点，第一遍统计不到，必须做点在段上的判定
+    for (auto& entry : meetings)
+    {
+        Meeting& meeting = entry.second;
+        for (const WirePath& path : paths)
+        {
+            if (std::find(meeting.wireIds.begin(), meeting.wireIds.end(), path.id) !=
+                meeting.wireIds.end())
+            {
+                continue; // 该连线已在此点登记过（自身端点或折点）
+            }
+
+            bool crossesHere = false;
+            for (size_t i = 0; i + 1 < path.points.size(); ++i)
+            {
+                if (IsPointInsideSegment(entry.first, path.points[i], path.points[i + 1]))
+                {
+                    crossesHere = true;
+                    break;
+                }
+            }
+
+            if (crossesHere)
+            {
+                meeting.wireIds.push_back(path.id);
+                meeting.incidentEnds += 2; // 从线段中间穿过，视为两个线段端点
+            }
+        }
+    }
+
+    // 第三遍：按规则筛出真正的分叉点
+    std::vector<Junction> junctions;
+    for (const auto& entry : meetings)
+    {
+        const Meeting& meeting = entry.second;
+        if (meeting.wireIds.size() < 2)
+        {
+            continue; // 只有一条线经过（自身拐弯），不是分叉
+        }
+
+        // 同一引脚扇出时汇入线段数只有 2（两条线共用引脚端点），但视觉上就是分叉处，
+        // 因此把「两条以上连线共享同一端点」也当作需要圆点的情形单独放行
+        const bool pinFanout = meeting.endWireCount >= 2;
+        if (meeting.incidentEnds < 3 && !pinFanout)
+        {
+            continue;
+        }
+
+        Junction junction;
+        junction.position = entry.first;
+        junction.wireIds = meeting.wireIds;
+        junction.incidentEnds = meeting.incidentEnds;
+        junction.atPinFanout = pinFanout;
+        junctions.push_back(std::move(junction));
+    }
+
+    // meetings 以 (x, y) 为键，遍历顺序天然满足「按坐标升序」的约定，无需再排序
+    return junctions;
 }
 
 // ───────────────────────── 命中与选中 ─────────────────────────

@@ -18,8 +18,11 @@ struct Pin
     int index = 0;                                ///< 引脚在所属元件内的序号，从 0 开始
     wxPoint offset;                               ///< 相对元件原点的本地坐标偏移（未应用朝向变换）
     PinDirection direction = PinDirection::Input;  ///< 引脚电气方向
-    bool connected = false;                       ///< 是否已被某条连线占用
-    int wireId = -1;                              ///< 占用的连线 id；-1 表示未连接
+    bool connected = false;                       ///< 是否至少挂有一条连线
+    /// 占用的连线 id；-1 表示未连接。
+    /// 注意：输出引脚允许扇出，此时只记录首条连线，
+    /// 需要完整列表请调用 Circuit::GetWiresForPin。
+    int wireId = -1;
 
     /// 把引脚偏移换算到世界坐标。
     /// @param compPos 元件在世界坐标中的原点位置

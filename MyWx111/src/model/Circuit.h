@@ -92,6 +92,14 @@ public:
     /// @return 可以连接返回 true
     bool CanConnect(const PinRef& from, const PinRef& to, wxString* errorMsg = nullptr) const;
 
+    /// 校验某个引脚能否作为连线起点（只有 Output / Bidi 引脚允许）。
+    /// 走线交互在按下左键的瞬间调用本方法，不必等用户走完整条线才在终点被拒绝；
+    /// 判定规则与 CanConnect 的起点部分必须保持一致，两处需同步修改。
+    /// @param from     待检查的起点引脚
+    /// @param[out] errorMsg 非法时写入中文提示；可为 nullptr
+    /// @return 可以作为起点返回 true
+    bool CanStartWire(const PinRef& from, wxString* errorMsg = nullptr) const;
+
     /// @param wire 目标连线
     /// @return 该连线在世界坐标下的完整折线路径；端点失效时返回空列表
     std::vector<wxPoint> GetWirePath(const Wire& wire) const;
@@ -100,6 +108,36 @@ public:
     /// @param componentId 引脚所属元件 id
     /// @param[in,out] pins 待回填的引脚列表
     void PopulatePinStates(int componentId, std::vector<Pin>& pins) const;
+
+    /// 取挂在指定引脚上的全部连线 id。
+    /// 输出引脚允许扇出（一个输出接多个输入），因此返回值可能是多条；
+    /// Pin::wireId 只能表示首条连线，需要完整列表时必须走本方法。
+    /// @param componentId 引脚所属元件 id
+    /// @param pinIndex    引脚序号
+    /// @return 该引脚上的连线 id 列表（按建立顺序）；未连接时为空
+    std::vector<int> GetWiresForPin(int componentId, int pinIndex) const;
+
+    // ── 分叉圆点（junction，仅用于渲染提示，不参与连通性）──
+    /// 分叉圆点：多条连线在同一世界坐标汇聚处应绘制的实心圆点。
+    /// 本项目电气连通性只由 GetWires() 决定（线段几何相交不产生连接），
+    /// 因此该结构纯粹是显示信息：多画或少画都不会改变网表与仿真结果。
+    struct Junction
+    {
+        wxPoint position;         ///< 圆点中心的世界坐标
+        std::vector<int> wireIds; ///< 在该点交汇的连线 id（去重，按发现顺序）
+        int incidentEnds = 0;     ///< 汇入该点的线段端点数：连线端点算 1，内部折点算 2
+        /// true 表示该点正好是「同一引脚扇出多条连线」的汇合点。
+        /// 此类点汇入线段数只有 2，但视觉上就是分叉处，渲染层据此决定是否加粗或弱化。
+        bool atPinFanout = false;
+    };
+
+    /// 自动检测全部分叉圆点。渲染层应在结构变更后调用一次并缓存结果。
+    /// 判定规则：至少两条不同连线交汇于同一点，且
+    ///   ① 汇入线段数 >= 3（T 形或十字交汇）；或
+    ///   ② 该点是两条以上连线的引脚端点（同一引脚扇出）。
+    /// 仅一条连线自身拐弯的点会被排除。
+    /// @return 按世界坐标 (x, y) 升序排列的圆点列表；无分叉时为空
+    std::vector<Junction> ComputeJunctions() const;
 
     // ── 命中与选中 ──
     /// @param worldPt 世界坐标点
@@ -409,6 +447,14 @@ private:
     /// @return 删除成功返回 true
     bool RemoveWireInternal(int wireId);
 
+    /// 查询两个引脚之间是否已存在连线（方向不限）。
+    /// 扇出后同一输出可接多个输入，但同一对引脚之间重复连线只会得到两条完全重合的线，
+    /// 因此连接校验需要此项判重。
+    /// @param a 引脚 a
+    /// @param b 引脚 b
+    /// @return 已存在连线返回 true
+    bool HasWireBetween(const PinRef& a, const PinRef& b) const;
+
     std::vector<std::unique_ptr<Component>> m_components; ///< 元件容器（独占所有权）
     std::vector<std::unique_ptr<Wire>> m_wires;           ///< 连线容器（独占所有权）
     std::vector<int> m_selection;                         ///< 选中元件 id 集合
@@ -416,7 +462,10 @@ private:
     std::vector<Note> m_notes;                            ///< 全部注释，绘制在元件与连线之上
     int m_nextNoteId = 1;                                 ///< 注释 id 计数器，按既有约定不因 Clear() 重置
     int m_selectedNoteId = -1;                            ///< 当前选中的注释 id，-1 表示无
-    std::map<std::pair<int, int>, int> m_pinToWire;       ///< (元件 id, 引脚序号) → 连线 id
+    /// (元件 id, 引脚序号) → 连线 id。用 multimap 支持输出引脚扇出：
+    /// 一个输出可以接多个输入，因此同一引脚允许挂多条连线；
+    /// 输入引脚的多驱动限制在 CanConnect 中单独校验。
+    std::multimap<std::pair<int, int>, int> m_pinToWire;
     int m_nextComponentId = 1;                            ///< 下一个可用元件 id
     int m_nextWireId = 1;                                 ///< 下一个可用连线 id
     ChangeHandler m_changeHandler;                        ///< 变更回调

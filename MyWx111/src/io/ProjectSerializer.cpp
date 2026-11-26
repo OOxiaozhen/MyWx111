@@ -945,6 +945,10 @@ bool SerializeCircuitToJson(const Circuit& circuit, wxString& out, wxString* err
 
     const auto& wires = circuit.GetWires();
     out += L"  \"wires\": [\n";
+    // 扇出（同一输出引脚挂多条连线）在这里自然表达成多条并列记录：
+    // 每条连线独立保存两端引脚与手动折点，加载时逐条 AddWire 重建即可完整还原。
+    // 分叉圆点（junction）是由连线几何推导出的派生数据，刻意不落盘，
+    // 否则会出现派生值与真实几何不同步的假故障。
     for (size_t i = 0; i < wires.size(); ++i)
     {
         if (!wires[i])
@@ -1095,6 +1099,8 @@ bool DeserializeCircuitFromJson(Circuit& circuit, const wxString& json, wxString
 
     for (const TempWire& temp : tempWires)
     {
+        // 同一 from 引脚出现多条记录是扇出的正常形态（一个输出驱动多个输入）：
+        // AddWire 只对终点判占用，因此按顺序逐条重建即可恢复全部扇出分支
         const auto fromIt = idMap.find(temp.fromComponent);
         const auto toIt = idMap.find(temp.toComponent);
         if (fromIt == idMap.end() || toIt == idMap.end())
